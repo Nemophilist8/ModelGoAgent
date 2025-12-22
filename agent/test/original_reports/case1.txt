@@ -1,0 +1,124 @@
+translated = [embed(ds, bigtranslate_model) for ds in [deep_sequoia_text, pubmed_text]]
+new_work = combine(translated + [bigtranslate_model])
+
+
+Work(
+  name='C_E_Deep-sequoia_E_PubMed_BigTranslate',
+  type='mix',
+  form='raw',
+  license_name='GPL-3.0',
+  assigned_license_name=None,
+  mixworks=[(Work(
+  name='E_Deep-sequoia',
+  type='data',
+  form='raw',
+  license_name='LGPL-LR',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[(Work(
+  name='Deep-sequoia',
+  type='data',
+  form='raw',
+  license_name='LGPL-LR',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+), 'embed')],
+  auxworks=[(Work(
+  name='BigTranslate',
+  type='model',
+  form='raw',
+  license_name='GPL-3.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+), 'use')],
+  relied_works=[],
+), 'combine_mix'), (Work(
+  name='E_PubMed',
+  type='data',
+  form='raw',
+  license_name='CC-BY-NC-ND-4.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[(Work(
+  name='PubMed',
+  type='data',
+  form='raw',
+  license_name='CC-BY-NC-ND-4.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+), 'embed')],
+  auxworks=[(Work(
+  name='BigTranslate',
+  type='model',
+  form='raw',
+  license_name='GPL-3.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+), 'use')],
+  relied_works=[],
+), 'combine_mix'), (Work(
+  name='BigTranslate',
+  type='model',
+  form='raw',
+  license_name='GPL-3.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+), 'combine_mix')],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+)
+The desired release scenario of C_E_Deep-sequoia_E_PubMed_BigTranslate is for SELLING.
+
+---------------------------------------------------------------------------------------------
+
+The base information of C_E_Deep-sequoia_E_PubMed_BigTranslate:
+| Work Name             | C_E_Deep-sequoia_E_PubMed_BigTranslate                                                                                                                                  |
+| Type & Form           | Mix, Raw                                                                                                                                                                |
+| License Name          | GPL-3.0                                                                                                                                                                 |
+| Relied Work (License) | BigTranslate(GPL-3.0), Deep-sequoia(LGPL-LR), E_Deep-sequoia(LGPL-LR), BigTranslate(GPL-3.0), PubMed(CC-BY-NC-ND-4.0), E_PubMed(CC-BY-NC-ND-4.0), BigTranslate(GPL-3.0) |
+
+To Sell this work in compliance, you must take into account the following Warnings(0), Errors(7), Restrictions(13).
+| Rights Error - 1   | Work Deep-sequoia does NOT grant you the right to COMMERCIAL_USE                                                                                                                                                  |
+| Rights Error - 2   | Work E_Deep-sequoia does NOT grant you the right to COMMERCIAL_USE                                                                                                                                                |
+| Rights Error - 3   | Work PubMed does NOT grant you the right to REDISTRIBUTE                                                                                                                                                          |
+| Rights Error - 4   | Work PubMed does NOT grant you the right to COMMERCIAL_USE                                                                                                                                                        |
+| Rights Error - 5   | Work E_PubMed does NOT grant you the right to REDISTRIBUTE                                                                                                                                                        |
+| Rights Error - 6   | Work E_PubMed does NOT grant you the right to COMMERCIAL_USE                                                                                                                                                      |
+| Licenses Error - 7 | Work PubMed CONNOT BE SHARED due to the prohibition of license CC-BY-NC-ND-4.0                                                                                                                                    |
+| Restriction - 1    | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must STATE the CHANGES according to LGPL-LR of Deep-sequoia                                                                                                           |
+| Restriction - 2    | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must STATE the CHANGES according to CC-BY-NC-ND-4.0 of PubMed                                                                                                         |
+| Restriction - 3    | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must STATE the CHANGES according to GPL-3.0 of BigTranslate                                                                                                           |
+| Restriction - 4    | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of Deep-sequoia according to LGPL-LR                           |
+| Restriction - 5    | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must RETAIN the ORIGINAL LICENSE file according to LGPL-LR of Deep-sequoia                                                                                            |
+| Restriction - 6    | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of E_Deep-sequoia according to LGPL-LR                         |
+| Restriction - 7    | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must RETAIN the ORIGINAL LICENSE file according to LGPL-LR of E_Deep-sequoia                                                                                          |
+| Restriction - 8    | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of E_PubMed according to CC-BY-NC-ND-4.0                       |
+| Restriction - 9    | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must RETAIN the ORIGINAL LICENSE file according to CC-BY-NC-ND-4.0 of E_PubMed                                                                                        |
+| Restriction - 10   | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of BigTranslate according to GPL-3.0                           |
+| Restriction - 11   | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must RETAIN the ORIGINAL LICENSE file according to GPL-3.0 of BigTranslate                                                                                            |
+| Restriction - 12   | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of C_E_Deep-sequoia_E_PubMed_BigTranslate according to GPL-3.0 |
+| Restriction - 13   | Work C_E_Deep-sequoia_E_PubMed_BigTranslate must RETAIN the ORIGINAL LICENSE file according to GPL-3.0 of C_E_Deep-sequoia_E_PubMed_BigTranslate                                                                  |
+
+The information of GPL-3.0 license of this work is:
+| License Name    | GNU General Public License v3.0                              |
+| License Tags    | Public, Software, Copyleft, Disclose, Auto-Relicensing       |
+| Granted Rights  | Use, Modify, Merge, Redistribute, Commercial Use, Patent Use |
+| Reserved Rights | Sublicense, Trademark Use, Copyright, Patent, Trademark      |
+| Notices for Use | Copyleft                                                     |
+| Full Text Link  | https://www.gnu.org/licenses/gpl-3.0.en.html                 |

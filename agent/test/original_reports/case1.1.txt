@@ -1,0 +1,147 @@
+def case1(dsl1, translator, dsl2):
+    translated = [embed(ds, translator) for ds in dsl1]
+    reused = combine(translated + dsl2)
+    par.analysis(reused, open_policy='sell')
+    reused.summary()
+    return reused
+case1([arxiv_text, stack_exchange_text], bigtranslate_model, [deep_sequoia_text, free_law_text])
+
+Work(
+  name='C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw',
+  type='data',
+  form='raw',
+  license_name='LGPL-LR',
+  assigned_license_name=None,
+  mixworks=[(Work(
+  name='E_arXiv',
+  type='data',
+  form='raw',
+  license_name='CC-BY-NC-SA-4.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[(Work(
+  name='arXiv',
+  type='data',
+  form='raw',
+  license_name='CC-BY-NC-SA-4.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+  caution=[]
+), 'embed')],
+  auxworks=[(Work(
+  name='BigTranslate',
+  type='model',
+  form='raw',
+  license_name='GPL-3.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+  caution=[]
+), 'use')],
+  relied_works=[],
+  caution=[]
+), 'combine'), (Work(
+  name='E_StackExchange',
+  type='data',
+  form='raw',
+  license_name='CC-BY-SA-4.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[(Work(
+  name='StackExchange',
+  type='data',
+  form='raw',
+  license_name='CC-BY-SA-4.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+  caution=[]
+), 'embed')],
+  auxworks=[(Work(
+  name='BigTranslate',
+  type='model',
+  form='raw',
+  license_name='GPL-3.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+  caution=[]
+), 'use')],
+  relied_works=[],
+  caution=[]
+), 'combine'), (Work(
+  name='Deep-sequoia',
+  type='data',
+  form='raw',
+  license_name='LGPL-LR',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+  caution=[]
+), 'combine'), (Work(
+  name='FreeLaw',
+  type='data',
+  form='raw',
+  license_name='CC-BY-ND-4.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+  caution=[]
+), 'combine')],
+  subworks=[],
+  auxworks=[],
+  relied_works=[]
+)
+The desired release scenario of C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw is for SELLING.
+
+---------------------------------------------------------------------------------------------
+
+The base information of C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw:
+| Work Name             | C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw                                                                                                                                                           |
+| Type & Form           | Data, Raw                                                                                                                                                                                                |
+| License Name          | LGPL-LR                                                                                                                                                                                                  |
+| Relied Work (License) | BigTranslate(GPL-3.0), arXiv(CC-BY-NC-SA-4.0), E_arXiv(CC-BY-NC-SA-4.0), BigTranslate(GPL-3.0), StackExchange(CC-BY-SA-4.0), E_StackExchange(CC-BY-SA-4.0), Deep-sequoia(LGPL-LR), FreeLaw(CC-BY-ND-4.0) |
+
+To Sell this work in compliance, you must take into account the following Warnings(0), Errors(4), Restrictions(17).
+| Rights Error - 1 | Work arXiv does NOT grant you the right to COMMERCIAL_USE                                                                                                                                                                         |
+| Rights Error - 2 | Work E_arXiv does NOT grant you the right to COMMERCIAL_USE                                                                                                                                                                       |
+| Rights Error - 3 | Work Deep-sequoia does NOT grant you the right to COMMERCIAL_USE                                                                                                                                                                  |
+| Rights Error - 4 | Work FreeLaw does NOT grant you the right to REDISTRIBUTE                                                                                                                                                                         |
+| Restriction - 1  | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must STATE the CHANGES according to CC-BY-NC-SA-4.0 of arXiv                                                                                                                  |
+| Restriction - 2  | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must STATE the CHANGES according to CC-BY-SA-4.0 of StackExchange                                                                                                             |
+| Restriction - 3  | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must STATE the CHANGES according to LGPL-LR of Deep-sequoia                                                                                                                   |
+| Restriction - 4  | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of arXiv according to CC-BY-NC-SA-4.0                                  |
+| Restriction - 5  | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN the ORIGINAL LICENSE file according to CC-BY-NC-SA-4.0 of arXiv                                                                                                   |
+| Restriction - 6  | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of E_arXiv according to CC-BY-NC-SA-4.0                                |
+| Restriction - 7  | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN the ORIGINAL LICENSE file according to CC-BY-NC-SA-4.0 of E_arXiv                                                                                                 |
+| Restriction - 8  | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of StackExchange according to CC-BY-SA-4.0                             |
+| Restriction - 9  | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN the ORIGINAL LICENSE file according to CC-BY-SA-4.0 of StackExchange                                                                                              |
+| Restriction - 10 | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of E_StackExchange according to CC-BY-SA-4.0                           |
+| Restriction - 11 | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN the ORIGINAL LICENSE file according to CC-BY-SA-4.0 of E_StackExchange                                                                                            |
+| Restriction - 12 | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of Deep-sequoia according to LGPL-LR                                   |
+| Restriction - 13 | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN the ORIGINAL LICENSE file according to LGPL-LR of Deep-sequoia                                                                                                    |
+| Restriction - 14 | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of FreeLaw according to CC-BY-ND-4.0                                   |
+| Restriction - 15 | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN the ORIGINAL LICENSE file according to CC-BY-ND-4.0 of FreeLaw                                                                                                    |
+| Restriction - 16 | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw according to LGPL-LR |
+| Restriction - 17 | Work C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw must RETAIN the ORIGINAL LICENSE file according to LGPL-LR of C_E_arXiv_E_StackExchange_Deep-sequoia_FreeLaw                                                                  |
+
+The information of LGPL-LR license of this work is:
+| License Name    | Lesser General Public License For Linguistic Resources                  |
+| License Tags    | Public, Data, Copyleft, Disclose, Auto-Relicensing                      |
+| Granted Rights  | Use, Modify, Merge, Redistribute                                        |
+| Reserved Rights | Sublicense, Trademark Use, Copyright, Patent, Trademark, Commercial Use |
+| Notices for Use | Copyleft, Revocable                                                     |
+| Full Text Link  | https://spdx.org/licenses/LGPLLR.html                                   |

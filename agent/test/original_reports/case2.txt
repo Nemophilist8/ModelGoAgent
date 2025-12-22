@@ -1,0 +1,103 @@
+def case2(model_list, data, model):
+    tuned = finetune(model, data)
+    reused = combine(model_list + [tuned])
+    #reused.form = 'saas'
+    par.analysis(reused, open_policy='share')
+    print(reused)
+    reused.summary()
+    return reused
+case2([baize_model, bloom_model], wiki_text, bert_model) # NLP task
+
+Work(
+  name='C_Baize_BLOOM_T_BERT',
+  type='model',
+  form='raw',
+  license_name='GPL-3.0',
+  assigned_license_name=None,
+  mixworks=[(Work(
+  name='Baize',
+  type='model',
+  form='raw',
+  license_name='GPL-3.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+), 'combine'), (Work(
+  name='BLOOM',
+  type='model',
+  form='raw',
+  license_name='BigScience-BLOOM-RAIL-1.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+), 'combine'), (Work(
+  name='T_BERT',
+  type='model',
+  form='raw',
+  license_name='Unlicense',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[(Work(
+  name='BERT',
+  type='model',
+  form='raw',
+  license_name='Apache-2.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+), 'train')],
+  auxworks=[(Work(
+  name='Wikipedia',
+  type='data',
+  form='raw',
+  license_name='CC-BY-SA-4.0',
+  assigned_license_name=None,
+  mixworks=[],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+), 'train')],
+  relied_works=[],
+), 'combine')],
+  subworks=[],
+  auxworks=[],
+  relied_works=[],
+)
+The desired release scenario of C_Baize_BLOOM_T_BERT is for FREE SHARING.
+
+---------------------------------------------------------------------------------------------
+
+The base information of C_Baize_BLOOM_T_BERT:
+| Work Name             | C_Baize_BLOOM_T_BERT                                                                                           |
+| Type & Form           | Model, Raw                                                                                                     |
+| License Name          | GPL-3.0                                                                                                        |
+| Relied Work (License) | Baize(GPL-3.0), BLOOM(BigScience-BLOOM-RAIL-1.0), Wikipedia(CC-BY-SA-4.0), BERT(Apache-2.0), T_BERT(Unlicense) |
+
+To Share this work in compliance, you must take into account the following Warnings(0), Errors(1), Restrictions(12).
+| Analysis Error - 1 | Work BLOOM under BigScience-BLOOM-RAIL-1.0 CONNOT BE RELICENSED to license GPL-3.0 due to incompatibility.                                                                       |
+| Restriction - 1    | Work C_Baize_BLOOM_T_BERT must STATE the CHANGES according to GPL-3.0 of Baize                                                                                                   |
+| Restriction - 2    | Work C_Baize_BLOOM_T_BERT must STATE the CHANGES according to BigScience-BLOOM-RAIL-1.0 of BLOOM                                                                                 |
+| Restriction - 3    | Work C_Baize_BLOOM_T_BERT must comply with the USE restriction terms according to BigScience-BLOOM-RAIL-1.0 of BLOOM                                                             |
+| Restriction - 4    | Work C_Baize_BLOOM_T_BERT must comply with the RUNTIME restriction terms according to BigScience-BLOOM-RAIL-1.0 of BLOOM                                                         |
+| Restriction - 5    | Work C_Baize_BLOOM_T_BERT must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of Baize according to GPL-3.0                   |
+| Restriction - 6    | Work C_Baize_BLOOM_T_BERT must RETAIN the ORIGINAL LICENSE file according to GPL-3.0 of Baize                                                                                    |
+| Restriction - 7    | Work C_Baize_BLOOM_T_BERT must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of BLOOM according to BigScience-BLOOM-RAIL-1.0 |
+| Restriction - 8    | Work C_Baize_BLOOM_T_BERT must RETAIN the ORIGINAL LICENSE file according to BigScience-BLOOM-RAIL-1.0 of BLOOM                                                                  |
+| Restriction - 9    | Work C_Baize_BLOOM_T_BERT must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of BERT according to Apache-2.0                 |
+| Restriction - 10   | Work C_Baize_BLOOM_T_BERT must RETAIN the ORIGINAL LICENSE file according to Apache-2.0 of BERT                                                                                  |
+| Restriction - 11   | Work C_Baize_BLOOM_T_BERT must RETAIN all NOTICE files (e.g. copyright, patent, trademark, and attribution) from the source form of C_Baize_BLOOM_T_BERT according to GPL-3.0    |
+| Restriction - 12   | Work C_Baize_BLOOM_T_BERT must RETAIN the ORIGINAL LICENSE file according to GPL-3.0 of C_Baize_BLOOM_T_BERT                                                                     |
+
+The information of GPL-3.0 license of this work is:
+| License Name    | GNU General Public License v3.0                              |
+| License Tags    | Public, Software, Copyleft, Disclose, Auto-Relicensing       |
+| Granted Rights  | Use, Modify, Merge, Redistribute, Commercial Use, Patent Use |
+| Reserved Rights | Sublicense, Trademark Use, Copyright, Patent, Trademark      |
+| Notices for Use | Copyleft                                                     |
+| Full Text Link  | https://www.gnu.org/licenses/gpl-3.0.en.html                 |

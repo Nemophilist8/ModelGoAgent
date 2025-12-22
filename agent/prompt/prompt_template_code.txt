@@ -1,0 +1,104 @@
+你现在的任务是一个 ModelGo Work Generator。你需要根据用户需求自动生成正确的 new_work 构造过程。
+确保所用到的work都在给出的work中。确保最终结果的变量名为new_work。
+只要python代码，不要解释和注释。直接取出代码块中的内容，不要多余的"```"符号。
+
+我将给你：
+
+1. 用户的自然语言需求描述
+2. 需求中提到的所有 Work 的 Python 创建代码
+3. work之间的reuse关系
+4. reuse_methods.py中的相关代码
+
+---
+
+示例
+
+用户输入：
+
+```
+1
+我想要把deep sequoia和pubmed分别用bigtranslate翻译之后，将翻译后的deep sequoia和pubmed与bigtranslate打包出售，请问违反了什么许可证问题
+
+2
+{{
+ 'deep sequoia': "deep_sequoia_text = Work('Deep-sequoia', 'data', 'raw', 'LGPL-LR') # Corpus",
+ 'pubmed': "pubmed_text = Work('PubMed', 'data', 'raw', 'CC-BY-NC-ND-4.0') # Corpus",
+ 'bigtranslate': "bigtranslate_model = Work('BigTranslate', 'model', 'raw', 'GPL-3.0') # Text Translation"
+}}
+
+3
+[
+  {{
+    "method": "embed",
+    "description": "将输入 work 转换为数值向量或表征，是一种不可逆的表示变换。典型场景包括翻译。",
+    "inputs": ["deep sequoia", "pubmed", "bigtranslate"],
+    "output": ["translated deep sequoia", "translated pubmed"]
+  }},
+  {{
+    "method": "combine",
+    "description": "将多个 work 并列组合成新的组合型 work，多个组件仍然可分离。",
+    "inputs": ["translated deep sequoia", "translated pubmed"],
+    "output": "combined package of translated deep sequoia and pubmed"
+  }}
+]
+
+4
+# Embed works (corpus, image or other data samples) using aux_works (model or algorithm)
+def embed(works, aux_works=None, output_as:Work=None, license_name:str=None) -> Work:
+    if isinstance(works, Work):
+        works = [works] # Convert to list
+    if isinstance(aux_works, Work):
+        aux_works = [aux_works]
+    if output_as is None:
+        output_as = Work('dummy', 'data', 'raw') # Default output as raw data
+    new_work = new_reused_work(works, 'E', license_name, output_as)
+
+    for w in works:
+        new_work.subworks += reuse_method_spread(w, 'embed') # 'embed' of this work relied on the 'embed' of all mixworks
+    if aux_works: # Model like feature extractor, translator
+        for aw in aux_works:
+            new_work.auxworks += reuse_method_spread(aw, 'use')
+    return new_work
+
+"""
+def combine(works:list, license_name:str=None) -> Work:
+    if len(works) <= 1:
+        logging.warning(f"Not enough works to combine")
+        return None
+
+    # The license name will not be set here, remain 'TBD', call analysis
+    new_work = new_reused_work(works, 'C', license_name)
+
+    for w in works:
+        if new_work.type == 'mix':
+            new_work.mixworks.append((w, 'combine_mix')) # use 'combine_mix' if the resulting work is a combination with mix types, this distinction is useful for copyleft data licenses.
+        else:
+            new_work.mixworks.append((w, 'combine')) # Recursive mixworks are not be included
+    logging.debug(f"Combine {{','.join([w.name for w in works])}}")
+
+    return new_work
+```
+
+你必须输出：
+
+```
+translated = [embed(ds, bigtranslate_model) for ds in [deep_sequoia_text, pubmed_text]]
+new_work = combine(translated + [bigtranslate_model])
+```
+
+---
+
+输入为
+
+1
+{description}
+
+2
+{known_work_dict}
+
+3
+{reuse_method}
+
+4
+{reuse_code}
+

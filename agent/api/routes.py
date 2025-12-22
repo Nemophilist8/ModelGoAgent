@@ -1,0 +1,154 @@
+"""
+API 路由处理
+"""
+import json
+import time
+import uuid
+from contextlib import asynccontextmanager
+
+from config import logger, DB_URI, DB_CONNECTION_KWARGS, DB_MAX_SIZE, LLM_TYPE
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse, StreamingResponse
+from graph import create_graph
+from langgraph.checkpoint.postgres import PostgresSaver
+from langgraph.store.postgres import PostgresStore
+from llms import get_llm
+from models import ChatCompletionRequest, ChatCompletionResponse, ChatCompletionResponseChoice, Message
+from psycopg_pool import ConnectionPool
+from utils import format_response, save_graph_visualization
+
+# 申明全局变量
+graph = None
+connection_pool = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    管理应用生命周期：启动时初始化，关闭时清理
+    """
+    global graph, connection_pool
+    # 启动时执行
+    try:
+        logger.info("正在初始化模型、定义 Graph...")
+        # 初始化 LLM
+        llm, embedding = get_llm(LLM_TYPE)
+
+        # 创建数据库连接池
+        connection_pool = ConnectionPool(
+            conninfo=DB_URI,
+            max_size=DB_MAX_SIZE,
+            kwargs=DB_CONNECTION_KWARGS,
+        )
+        connection_pool.open()  # 显式打开连接池
+        logger.info("数据库连接池初始化成功")
+
+        # 短期记忆 初始化checkpointer
+        checkpointer = PostgresSaver(connection_pool)
+        checkpointer.setup()
+
+        # 长期记忆 初始化PostgresStore
+        in_postgres_store = PostgresStore(
+            connection_pool,
+            index={
+                "dims": 1536,
+                "embed": embedding
+            }
+        )
+        in_postgres_store.setup()
+
+        # 定义 Graph
+        graph = create_graph(llm, checkpointer, in_postgres_store)
+        save_graph_visualization(graph)
+        logger.info("初始化完成")
+    except Exception as e:
+        logger.error(f"初始化过程中出错: {str(e)}")
+        raise
+
+    yield  # 应用运行期间
+
+    # 关闭时执行
+    logger.info("正在关闭...")
+    if connection_pool:
+        connection_pool.close()  # 关闭连接池
+        logger.info("数据库连接池已关闭")
+
+
+# 创建 FastAPI 应用
+app = FastAPI(lifespan=lifespan)
+
+
+@app.post("/v1/chat/completions")
+async def chat_completions(request: ChatCompletionRequest):
+    """
+    封装POST请求接口，与大模型进行问答
+    """
+    # 判断初始化是否完成
+    if not graph:
+        logger.error("服务未初始化")
+        raise HTTPException(status_code=500, detail="服务未初始化")
+
+    try:
+        logger.info(f"收到聊天完成请求: {request}")
+
+        query_prompt = request.messages[-1].content
+
+        # 每次都生成新的conversationId，避免历史消息累积
+        conversation_id = str(uuid.uuid4())
+        user_id = request.userId if request.userId else "default_user"
+
+        config = {"configurable": {"thread_id": user_id+"@@"+conversation_id, "user_id": user_id}}
+        logger.info(f"使用新的 thread_id: {user_id}@@{conversation_id}")
+
+        # 直接传递原始输入，由 input_parser_node 进行解析
+        input_message = [
+            {"role": "user", "content": query_prompt}
+        ]
+
+        # 处理流式响应
+        if request.stream:
+            async def generate_stream():
+                chunk_id = f"chatcmpl-{uuid.uuid4().hex}"
+                for message_chunk, metadata in graph.stream({"messages": input_message}, config, stream_mode="messages"):
+                    chunk = message_chunk.content
+                    # 在处理过程中产生每个块
+                    yield f"data: {json.dumps({'id': chunk_id,'object': 'chat.completion.chunk','created': int(time.time()),'choices': [{'index': 0,'delta': {'content': chunk},'finish_reason': None}]})}\n\n"
+                # 流结束的最后一块
+                yield f"data: {json.dumps({'id': chunk_id,'object': 'chat.completion.chunk','created': int(time.time()),'choices': [{'index': 0,'delta': {},'finish_reason': 'stop'}]})}\n\n"
+            # 返回fastapi.responses中StreamingResponse对象
+            return StreamingResponse(generate_stream(), media_type="text/event-stream")
+
+        # 处理非流式响应处理
+        else:
+            result = ""
+            try:
+                events = graph.stream({"messages": input_message}, config)
+                for event in events:
+                    for value in event.values():
+                        if "messages" in value and value["messages"]:
+                            msg = value["messages"][-1]
+                            # 处理字典格式和对象格式的消息
+                            if isinstance(msg, dict):
+                                result = msg.get("content", "")
+                            else:
+                                result = msg.content
+            except Exception as e:
+                logger.error(f"Error processing response: {str(e)}")
+
+            formatted_response = str(format_response(result))
+
+            response = ChatCompletionResponse(
+                choices=[
+                    ChatCompletionResponseChoice(
+                        index=0,
+                        message=Message(role="assistant", content=formatted_response),
+                        finish_reason="stop"
+                    )
+                ]
+            )
+            # 返回fastapi.responses中JSONResponse对象
+            return JSONResponse(content=response.model_dump())
+
+    except Exception as e:
+        logger.error(f"处理聊天完成时出错:\n\n {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

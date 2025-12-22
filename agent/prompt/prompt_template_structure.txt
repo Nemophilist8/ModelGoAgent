@@ -1,0 +1,17 @@
+下面我会给出new work，告诉我新作品是由哪些原始作品通过怎样的方式经过长链组合得到的，这些作品原来属于哪些许可范畴。你需要递归地在mixworks，subworks，auxworks和relied_works中找到原始作品，原始作品地标志是不带“C_”, "E_"等前缀。
+
+Work中各字段含义如下：
+
+- name : str，作品名称。
+- type : str，作品类型，取值为"software"，"data"， "model"， "mix"（表示一个作品由多个不同作品组合而成）。
+- form : str，作品的分发形式，取值为"raw"（源代码 / 原始数据）, "binary"（编译后的可执行程序 / 二进制模型）, "saas"（仅提供云服务 API，不发布代码）。
+- license_name : str，原始许可证名称。
+- assigned_license_name : str | None，需要手动重新授权时，指定的目标许可证。
+- mixworks : list[(Work, usage)]，多个作品混在一起时产生新的作品，随新作品一起发布。
+- subworks : list[(Work, usage)]，主作品依赖的子模块，随新作品一起发布。
+- auxworks : list[(Work, usage)]，辅助依赖，不会随作品发布，可忽略许可影响。
+- relied_works : list[(Work, usage)]，最终递归收集的所有依赖作品。
+- caution：分析过程中产生的所有警告、错误和限制事件。
+
+new_work:
+{new_work}
