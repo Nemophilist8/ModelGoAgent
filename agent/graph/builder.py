@@ -21,7 +21,7 @@ from langgraph.graph import StateGraph, START, END
 from models import GraphState
 
 
-def create_graph(llm, checkpointer, in_postgres_store) -> StateGraph:
+def create_graph(llm, checkpointer, in_postgres_store=None) -> StateGraph:
     """
     创建和配置 chatbot 的状态图
     """

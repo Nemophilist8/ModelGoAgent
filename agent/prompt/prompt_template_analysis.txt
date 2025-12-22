@@ -38,7 +38,7 @@
    3. 许可证错误（License violations / misapplications）：
 
       * 列出每一条潜在或已识别的许可证错误。
-      * 每条错误须包含：简短描述 → 风险级别（Critical / High / Medium / Low）→ 影响范围（哪些最终产物/组件受影响）→ 证据（来自 `{original_analysis}` 的要点或结构里的具体位置）。
+      * 每条错误须包含：简短描述 → 影响范围（哪些最终产物/组件受影响）→ 证据（来自 `{original_analysis}` 的要点或结构里的具体位置）。
    4. 许可证限制：
       需要引用原条款，解释该条款如何影响 new work（例如“条款 X 要求在再分发时保留版权声明，因此若将模型权重公开则必须在 README 中包含 Y”）。
    5. **优先级整改清单（Actionable remediation plan）**：

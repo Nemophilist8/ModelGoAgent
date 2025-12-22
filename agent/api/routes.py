@@ -16,6 +16,7 @@ from llms import get_llm
 from models import ChatCompletionRequest, ChatCompletionResponse, ChatCompletionResponseChoice, Message
 from psycopg_pool import ConnectionPool
 from utils import format_response, save_graph_visualization
+from langgraph.checkpoint.memory import MemorySaver
 
 # 申明全局变量
 graph = None
@@ -34,31 +35,38 @@ async def lifespan(app: FastAPI):
         # 初始化 LLM
         llm, embedding = get_llm(LLM_TYPE)
 
-        # 创建数据库连接池
-        connection_pool = ConnectionPool(
-            conninfo=DB_URI,
-            max_size=DB_MAX_SIZE,
-            kwargs=DB_CONNECTION_KWARGS,
-        )
-        connection_pool.open()  # 显式打开连接池
-        logger.info("数据库连接池初始化成功")
+        # 暂时取消长期记忆
 
-        # 短期记忆 初始化checkpointer
-        checkpointer = PostgresSaver(connection_pool)
-        checkpointer.setup()
+        # # 创建数据库连接池
+        # connection_pool = ConnectionPool(
+        #     conninfo=DB_URI,
+        #     max_size=DB_MAX_SIZE,
+        #     kwargs=DB_CONNECTION_KWARGS,
+        # )
+        # connection_pool.open()  # 显式打开连接池
+        # logger.info("数据库连接池初始化成功")
+        #
+        # # 短期记忆 初始化checkpointer
+        # checkpointer = PostgresSaver(connection_pool)
+        # checkpointer.setup()
+        #
+        # # 长期记忆 初始化PostgresStore
+        # in_postgres_store = PostgresStore(
+        #     connection_pool,
+        #     index={
+        #         "dims": 1536,
+        #         "embed": embedding
+        #     }
+        # )
+        # in_postgres_store.setup()
+        #
+        # # 定义 Graph
+        # graph = create_graph(llm, checkpointer, in_postgres_store)
 
-        # 长期记忆 初始化PostgresStore
-        in_postgres_store = PostgresStore(
-            connection_pool,
-            index={
-                "dims": 1536,
-                "embed": embedding
-            }
-        )
-        in_postgres_store.setup()
 
-        # 定义 Graph
-        graph = create_graph(llm, checkpointer, in_postgres_store)
+        checkpointer = MemorySaver()
+        graph = create_graph(llm, checkpointer)
+
         save_graph_visualization(graph)
         logger.info("初始化完成")
     except Exception as e:
