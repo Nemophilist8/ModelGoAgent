@@ -1,96 +1,47 @@
-# ModelGo
+## 运行方式
+启动服务 `python agent/main.py `   
 
-### Official impletementation of ACM TheWebConf2024 accepted Oral Paper:
-### ModelGo: A Practical Tool for Machine Learning License Analysis
+运行测试 `python test/test_workflow.py`
 
-![img](images/cover.png)
+debug https://smith.langchain.com/
 
-📌 [Download this Paper](https://dl.acm.org/doi/abs/10.1145/3589334.3645520)
+## 项目依赖
 
-# ModelGo Licenses Set
-### ✨Recent Update: We are happy to annocence our [ModelGo Licenses Set](https://www.modelgo.li)! 🤗
-#### ModelGo Licenses provide flexible, free, and user-friendly licensing solutions to meet your specific needs in publishing deep learning models. We offer you five publishing options (similar to Creative Commons):
-
-
-* **BY** - Downstream model users must give credit to you, retain your attribution information, keep the original license and notice in their shared copies and modifications.
-* **NC** - Downstream model users must run and distribute your models, derivatives of your models, and generated content of your models for Non-Commercial purposes only.
-* **ND** - Downstream model users may Not Distribute any modified works or generated content based on your models.
-* **RAI** - Downstream model users must ensure that their use and distribution of your models and derivatives of your models comply with the terms of Responsible use of AI.
-* **OS** - Downstream model users must keep their distributed copies and derivatives Open Source to the public and apply the same license to their derivative work when publishing (Copyleft).
-
-#### Why we need ModelGo Licenses Set?
-> To facilitate managed sharing of models while protecting your Intellectual Property. ModelGo licenses offer flexible options to fulfill your specific licensing needs about using and distributing your deep learning models while protecting your Intellectual Property (IP). Traditional open-source software (OSS) licenses lack clear definitions regarding machine learning concepts, such as Models, Output, and Derivatives created through knowledge transfer. This lack of compatibility can result in certain ML activities (e.g., Distillation, Mix-of-Expert) being beyond the control of the model owner and potentially compromising their IP rights.
-
-Please visit our website for the full text of the ModelGo Licenses Set and more information.
-
-💡 *Note: The ModelGo Licenses Set is a set of licenses (Terms & Conditions) designed for ML models for the purpose of standardized model licensing (We just reuses the name ModelGo).*
-
-## Overview 
-
-ModelGo is a a specialized parser designed for license analysis in **Mahine Learning Project**. It mainly provides three features currently:
-
-![cover](images/aims.png)
-
-The struct of ModelGo:
+安装项目依赖
 ```
-.
-├── license_raw # Raw text of ModelGo's supported licenses
-│   ├── AFL-3.0.txt
-│   ├── AGPL-3.0.txt
-│   └── ...
-├── paper_list # References of ModelGo
-│   └── ...
-├── tex # LaTex file of ModelGo
-│   ├── MAIN.pdf # Latest version of this work
-│   └── ...
-├── License_parser.py # Define 'License' and implement conflict analysis function
-├── licenses_description.yml # Standardized license terms
-├── reuse_methods.py # Define the dependency rules for different model reusing methods
-├── main.py # Provided use cases
-├── works.py # Define 'Work' and its dependencies structure
-└── README.md
+pip install langgraph==0.2.74
+pip install langchain-openai==0.3.6
+pip install fastapi==0.115.8
+pip install uvicorn==0.34.0
+pip install gradio==5.18.0
+pip install e2b-code-interpreter python-dotenv
 ```
 
-## How to Use 
-For the use cases demonstrated in the paper, you can run the corresponding code in main.py to observe the analysis results. 
-For a new use case, you should define your `Work` variable and `license` variable (if the used license is not in `licenses_description.yml`, you also need to update this file) model-reusing workflow, similar to what is done in `main.py`.
 
+使用Docker的方式运行PostgreSQL数据库
 
-## Why We Need ModelGo 🤔
-![motivation](images/motivations.png)
+1. 进入官网 https://www.docker.com/ 下载安装Docker Desktop软件并安装，安装完成后打开软件
 
-In a ML project, there are typically three main components: data, code, and model. Each of these components is governed by distinct licenses. For instance, an article from arXiv might be licensed under CC BY-NC-SA, while content from Wikipedia could be under CC BY-SA. Similarly, the modeling code and the model itself may have different licenses.
-**Therefore, traditional OSS license analysis, which only considers code dependency, will fail in the ML project situation**.
+2. 打开命令行终端，`cd agent`，PostgreSQL的docker配置文件为docker-compose.yml。运行 `docker-compose up -d` 命令后台启动PostgreSQL数据库服务。运行成功后可在Docker Desktop软件中进行管理操作或使用命令行操作或使用指令。
 
-#### ModelGo vs. Previous Work:
-![diff](images/diff.png)
-
-## Unique Challenges in License Analysis for ML Projects 😥
-![challenges](images/challenges.png)
-
-There are three challenges we need consider when we design ModelGo:
-1. ML projects may involve multiple types of licenses. For instance, the modeling code may be licensed as software, while the training dataset may be governed under content or database licensing frameworks like Creative Commons. Particularly challenging are the newly introduced responsible AI licenses such as OpenRAIL and Llama2, which are not supported by traditional license analysis applications.
-Addressing multiple licensing frameworks in a single license analysis application poses a significant challenge.
-
-2. ML workflows can be nested, involving multiple rounds of reuse. For instance, we may fine-tune a pretrained model with additional data and then distill the tuned model using another set of data. This intricate reuse flowchart establishes a complex dependency relationship among ML components, presenting a unique challenge for license analysis.
-
-3. The prevalence of improper licensing in current ML projects. Due to a lack of consensus in licensing, many models opt for software licenses or content licenses that simply match their code or dataset, which is not suitable for the ML scenario. It becomes challenging to find matching terms for ML activities such as training and distillation. Additionally, many ML projects do not declare license information, further increasing the ambiguity for license analysis.
-
-You can find evidence from our summary table:
-![t5](images/T5.png)
-
-## Example
-
-![CASE1](images/CASE1.png)
-
-#### Cite this Work:
+3. 因为LangGraph的PostgresStore需要使用到pgvector，因此需要在容器中按照如下步骤进行操作，直接使用Docker Desktop软件中进行操作
 ```
-@inproceedings{duan2024modelgo,
-  title={{ModelGo}: A Practical Tool for Machine Learning License Analysis},
-  author={Duan, Moming and Li, Qinbin and He, Bingsheng},
-  booktitle={Proceedings of the {ACM} Web Conference 2024},
-  doi={10.1145/3589334.3645520},
-  pages={1158–1169},
-  year={2024}
-}
+apt update
+apt install -y git build-essential postgresql-server-dev-15
+git clone --branch v0.7.0 https://github.com/pgvector/pgvector.git
+cd pgvector
+make
+make install
 ```
+
+4. 验证安装，检查扩展文件是否安装成功
+`ls -l /usr/share/postgresql/15/extension/vector*`
+
+5. 接下来，若要在脚本中进行使用，首先在系统环境中需要安装PostgreSQL 的开发库（libpq），因为 psycopg 需要它来编译或运行,根据自己的操作系统选择进行安装
+
+6. 最后，再安装相关依赖包
+pip install langgraph-checkpoint-postgres
+pip install psycopg psycopg-pool
+
+
+出现OSError: exception: access violation writing 0x0000000000000000，更新psycopg 3 binarypip install --upgrade "psycopg[binary]"
