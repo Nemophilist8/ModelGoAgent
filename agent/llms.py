@@ -1,7 +1,10 @@
 import logging
 import os
 
+from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+load_dotenv()
 
 # 设置日志模版
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -11,25 +14,25 @@ logger = logging.getLogger(__name__)
 # 模型配置字典
 MODEL_CONFIGS = {
     "openai": {
-        "base_url": "https://api.chatanywhere.tech/v1",
-        "api_key": "sk-ysFuVYmcidngAs9ZkSPuqDzkGfJFediolRzHXH8Af7OaDH90",
+        "base_url": os.getenv("OPENAI_BASE_URL", "https://api.chatanywhere.tech/v1"),
+        "api_key": os.getenv("OPENAI_API_KEY", ""),
         "chat_model": "gpt-4o-mini",
         "embedding_model": "text-embedding-3-small"
     },
     "oneapi": {
-        "base_url": "http://139.224.72.218:3000/v1",
-        "api_key": "sk-EDjbeeCYkD1OnI9E48018a018d2d4f44958798A261137591",
+        "base_url": os.getenv("ONEAPI_BASE_URL", "http://139.224.72.218:3000/v1"),
+        "api_key": os.getenv("ONEAPI_API_KEY", ""),
         "chat_model": "qwen-max",
         "embedding_model": "text-embedding-v1"
     },
     "qwen": {
-        "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-        "api_key": "sk-6cf518b3423b441b8a1e881b2432d178",
+        "base_url": os.getenv("QWEN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
+        "api_key": os.getenv("QWEN_API_KEY", ""),
         "chat_model": "qwen-max",
         "embedding_model": "text-embedding-v1"
     },
     "ollama": {
-        "base_url": "http://localhost:11434/v1",
+        "base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
         "api_key": "ollama",
         "chat_model": "deepseek-r1:8b",
         "embedding_model": "nomic-embed-text:latest"
@@ -39,7 +42,7 @@ MODEL_CONFIGS = {
 
 # 默认配置
 DEFAULT_LLM_TYPE = "openai"
-DEFAULT_TEMPERATURE = 0.3
+DEFAULT_TEMPERATURE = 0
 
 
 class LLMInitializationError(Exception):

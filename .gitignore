@@ -1,6 +1,12 @@
+__pycache__/
+*.py[cod]
+.env
+scripts/tmp_run.py
 /agent/.claude/settings.local.json
 /.idea/workspace.xml
 /.idea/misc.xml
 /.idea/ModelGo.iml
 /.idea/inspectionProfiles/profiles_settings.xml
 /.idea/vcs.xml
+.vscode/settings.json
+agent/graph.png

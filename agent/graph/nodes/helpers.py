@@ -82,8 +82,7 @@ def extract_function_from_file(function_name: str, file_path: str = None) -> str
     """
     if file_path is None:
         # 默认路径：相对于当前文件的位置
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(current_dir, "..", "..", "scripts", "reuse_methods.py")
+        file_path = os.path.join("scripts", "reuse_methods.py")
 
     try:
         # 读取文件内容

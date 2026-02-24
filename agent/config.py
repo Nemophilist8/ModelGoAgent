@@ -3,10 +3,13 @@
 """
 import logging
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # 设置LangSmith环境变量 进行应用跟踪，实时了解应用中的每一步发生了什么
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_API_KEY"] = "xxxxxxxxxxxxxx"
+os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY", "")
 
 # 设置日志模版
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -39,4 +42,4 @@ DB_CONNECTION_KWARGS = {
 }
 DB_MAX_SIZE = 20
 
-E2B_API_KEY = 'xxxxxxxxxxxxxxxxxxxx'
+E2B_API_KEY = os.getenv("E2B_API_KEY", "")
