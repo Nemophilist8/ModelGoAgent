@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 from typing import Dict, Optional, List, Tuple
 
-from api_license_fetcher import fetch_license_from_api
+from scripts.api_license_fetcher import fetch_license_from_api
 
 # 两阶段审计自动修复的最大重试次数
 MAX_METADATA_RETRY = 3
@@ -1314,7 +1314,6 @@ def set_api_key(api_key: str, model: str = "deepseek", github_token: Optional[st
         llm_helper.model = model
 
     llm_helper.github_token = github_token
-    logging.info("%s API key has been configured for global llm_helper", model)
-    print(f"已配置 {model} API 密钥用于许可证分析")
+    logging.info("已配置 %s API key 用于许可证分析", model)
     return llm_helper
 

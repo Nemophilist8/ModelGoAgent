@@ -34,6 +34,23 @@ class GraphState(TypedDict):
     open_type: Literal["raw", "binary", "saas"]
 
 
+# 许可证 Agent 状态
+class LicenseAgentState(TypedDict):
+    messages: Annotated[list, add_messages]
+    # --- 输入字段 ---
+    component_name: str      # 组件/作品名称（如 "tencent/HunyuanVideo-1.5"）
+    license_name: str        # 许可证名称（可选，若已知则跳过识别）
+    license_text: str        # 许可证全文（可选）
+    license_url: str         # 许可证 URL（可选）
+    readme_content: str      # README 内容（可选，用于从 README 推断许可证）
+    # --- 中间状态 ---
+    identified_license: str  # 识别出的许可证名称
+    # --- 输出字段 ---
+    license_data: Dict       # 结构化许可证数据（YAML 格式对应的 dict）
+    analysis_result: str     # 最终格式化分析文本
+    error_message: str       # 错误信息
+
+
 # 定义ChatCompletionRequest类
 class ChatCompletionRequest(BaseModel):
     messages: List[Message]

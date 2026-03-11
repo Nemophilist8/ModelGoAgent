@@ -9,5 +9,5 @@ scripts/tmp_run.py
 /.idea/inspectionProfiles/profiles_settings.xml
 /.idea/vcs.xml
 .vscode/settings.json
-agent/graph.png
 .claude/settings.local.json
+/agent/llm_outputs/

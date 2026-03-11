@@ -6,7 +6,7 @@ import re
 from langchain_core.runnables.graph_mermaid import MermaidDrawMethod
 from langgraph.graph import StateGraph
 
-from config import logger
+from agent.config import logger
 
 
 def format_response(response):

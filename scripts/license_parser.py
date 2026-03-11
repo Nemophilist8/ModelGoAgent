@@ -7,7 +7,7 @@ import yaml
 from tabulate import tabulate
 
 from works import Work, EVENT
-from llm_license_helper import llm_helper
+from scripts.llm_license_helper import llm_helper
 
 
 """ Use for standardize the string list of license rights """

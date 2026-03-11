@@ -18,6 +18,7 @@ from agent.config import (
     LICENSE_LLM_MODEL,
     GITHUB_TOKEN,
 )
+from scripts.llm_license_helper import set_api_key
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from agent.graph import create_graph
@@ -52,7 +53,6 @@ async def lifespan(app: FastAPI):
         if LICENSE_LLM_API_KEY:
             try:
                 # 始终通过模块名 `llm_license_helper` 导入，避免出现 `scripts.llm_license_helper` 与 `llm_license_helper` 两份模块
-                from llm_license_helper import set_api_key
                 set_api_key(api_key=LICENSE_LLM_API_KEY, model=LICENSE_LLM_MODEL, github_token=GITHUB_TOKEN or None)
                 logger.info("许可证分析 LLM 已配置: model=%s", LICENSE_LLM_MODEL)
             except Exception as e:

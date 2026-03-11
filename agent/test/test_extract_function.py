@@ -1,7 +1,7 @@
 """
 测试函数提取功能
 """
-from graph.nodes import extract_function_from_file, extract_multiple_functions
+from agent.graph.nodes import extract_function_from_file, extract_multiple_functions
 
 # 测试单个函数提取
 print("=" * 80)

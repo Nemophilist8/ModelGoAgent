@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from copy import deepcopy
 
-from license_parser import Parser
+from scripts.license_parser import Parser
 from works import Work
 
 """ <reuse_methods.py>

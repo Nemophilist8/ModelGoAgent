@@ -133,6 +133,8 @@ def extract_function_from_file(function_name: str, file_path: str = None) -> str
         return ""
 
     except FileNotFoundError:
+        abs_path = os.path.abspath(file_path)
+        print(abs_path)
         logger.error(f"文件不存在: {file_path}")
         return ""
     except SyntaxError as e:
