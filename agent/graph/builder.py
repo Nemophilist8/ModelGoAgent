@@ -79,8 +79,6 @@ def create_graph(llm, checkpointer, in_postgres_store=None) -> StateGraph:
         graph_builder.add_edge('code_node', 'analysis_node')
         graph_builder.add_edge("analysis_node", END)
 
-        graph_builder.add_edge('code_node', END)
-
         # 编译生成 graph 并返回
         return graph_builder.compile(checkpointer=checkpointer, store=in_postgres_store)
 

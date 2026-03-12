@@ -1,9 +1,10 @@
 """
 数据模型定义
 """
+import re
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, TypedDict, Dict, Annotated, Any, Literal
 
 from langgraph.graph.message import add_messages
@@ -20,6 +21,21 @@ class Work:
     name: str
     standard_name: str
     code: str = None
+    # 从 code 解析得到，不在构造函数中传入
+    component_type: str = field(init=False, default='')  # 组件类型
+    component_form: str = field(init=False, default='')  # 组件形式
+    license: str = field(init=False, default='')         # 许可证
+
+    def __post_init__(self):
+        if self.code:
+            m = re.search(
+                r"Work\('([^']+)',\s*'([^']+)',\s*'([^']+)',\s*'([^']+)'\)",
+                self.code
+            )
+            if m:
+                self.component_type = m.group(2)
+                self.component_form = m.group(3)
+                self.license        = m.group(4)
 
 # 自定义 State 类型，包含解析后的输入字段
 class GraphState(TypedDict):

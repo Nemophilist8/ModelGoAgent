@@ -176,3 +176,38 @@ def extract_python_code(text: str) -> str:
         return m.group(1)
 
     return text.strip()
+
+
+def build_license_clauses_text(known_works, license_raw_dir=None) -> str:
+    """
+    为 known_works 中涉及的每个唯一许可证，读取 scripts/license_raw/ 下对应的原文文件，
+    拼接为格式化的许可证原文字符串，供注入分析提示词使用。
+    相同许可证的 work 合并展示，每份许可证原文只插入一次。
+    """
+    if license_raw_dir is None:
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+        license_raw_dir = os.path.join(base_dir, 'scripts', 'license_raw')
+
+    # 按许可证名称聚合 work
+    license_to_works: dict[str, list[str]] = {}
+    for work in (known_works or []):
+        lic = getattr(work, 'license', None)
+        if not lic:
+            continue
+        license_to_works.setdefault(lic, []).append(work.name)
+
+    sections = []
+    for lic, work_names in license_to_works.items():
+        works_label = "、".join(work_names)
+        license_file = os.path.join(license_raw_dir, f"{lic}.txt")
+
+        if os.path.exists(license_file):
+            with open(license_file, 'r', encoding='utf-8') as f:
+                raw_text = f.read()
+            sections.append(f"### {lic}\n\n适用作品：{works_label}\n\n{raw_text.strip()}")
+        else:
+            logger.warning(f"许可证原文文件未找到: {lic}")
+            sections.append(f"### {lic}\n\n适用作品：{works_label}\n\n（原文件未找到，请查阅官方网站）")
+
+    # print(os.path.abspath(license_file))
+    return "\n\n---\n\n".join(sections) if sections else "（未检测到任何已知许可证）"
