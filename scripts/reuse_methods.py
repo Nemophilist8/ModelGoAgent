@@ -224,11 +224,10 @@ def get_new_work_type(works:list) -> str:
     for w in works:
         if w.type == 'mix':
             for (work, type) in w.mixworks:
-                all_work_type.append(type)
+                all_work_type.append(work.type)
         else:
             all_work_type.append(w.type)
     all_work_type = list(set(all_work_type))
-    
     if len(all_work_type) == 1:
         # Combination of works with same type will result new work in same type
         new_work_type = all_work_type[0]
