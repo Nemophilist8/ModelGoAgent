@@ -234,7 +234,7 @@ class LLMLicenseHelper:
             许可证文本:
             {license_text}
 
-            请仅输出符合 YAML 格式的许可证元数据，不要包含任何解释、注释、编号列表或中文说明。不要使用 Markdown 代码块（如 ```yaml）。若仅提供许可证名称而无文本，请基于权威知识（如 SPDX、OSI、Creative Commons 官方定义）填写；若有文本，则所有字段必须严格基于文本内容，不得臆测或补充未提及信息。
+            请仅输出符合 YAML 格式的许可证元数据，不要包含任何解释、注释、编号列表或中文说明。不要使用 Markdown 代码块（如 ```yaml）。若仅提供许可证名称而无文本，请基于权威知识（如 SPDX、OSI、Creative Commons 官方定义）填写；若有文本，则所有字段必须严格基于文本内容（除非规则中有明确其它特殊规定），不得臆测或补充未提及信息。
             输出 YAML 时，字段顺序必须严格按照本提示词出现的顺序
             full_name: 完整的许可证官方名称（不得添加用途说明如 "Data License"）
             short_id: 许可证的短标识符（必须与输入的 license_name 完全一致）
@@ -244,15 +244,18 @@ class LLMLicenseHelper:
 
             categories: [public, software, data, model, proprietary, permissive, copyleft, disclose, auto-relicensing]
             # 必须从上述列表中选择适用项。注意            ：
-            #   - 所有 Creative Commons、OSI 批准、SPDX 列表中的许可证均不得包含 "proprietary"            
+            #   - 所有 Creative Commons、OSI 批准、SPDX 列表中的许可证均不得包含 "proprietary"  
+            #   - "public": 只要该许可证是向不特定公众公开发布的（即 Open Source 或 Shared Source），均添加此项          
             #   - "permissive"：宽松许可（如 MIT、Apache-2.0），根据实际内容判断，不得通过许可证名称简单臆测            
-            #   - "copyleft"：具有传染性（如 GPL、CC-BY-SA）            
-            #   - "disclose"：要求披露源码或修改（如 GPL 要求提供源代码）            
+            #   - "copyleft"：copyleft许可（如 GPL、CC-BY-SA）。如果修改或基于某个作品创作衍生作品，并分发该衍生作品，必须使用相同或兼容的许可证来授权整个衍生作品。            
+            #   - "disclose"：意味着许可作品要提供源代码（如 GPL 要求提供源代码，AFL-3.0要求原始许可人提供源码）            
             #   - "auto-relicensing"：衍生作品必须以相同或兼容许可证发布（如 CC-BY-SA、GPL)            
-            #   - "software"：此许可适用于software            
+            #   - "software"：此许可适用于software           
             #   - "data"：此许可适用于data            
-            #   - "model"：此许可适用于model            
-            #   - "proprietary"（专有）与 "permissive"（宽松）互斥，不能同时存在                        
+            #   - "model"：此许可适用于model  
+            #   - 这里的"适用于"是指此许可本身设计时考虑了software, data, model中的某种或多种，不用考虑现实是否有人用作它用，比如经常有人使用Apache-2.0做model许可，但其实它在设计时并没有考虑model          
+            #   - "proprietary"（专有）与 "permissive"（宽松）互斥，不能同时存在 
+            #   - "public" 和 "proprietary" 可以同时出现（例如公开发布文本/源码的专有许可证）                       
 
             labels: []            
             # 可选标签（仅当明确适用时添加）：            
@@ -262,9 +265,11 @@ class LLMLicenseHelper:
             rights: [use, modify, merge, redistribute, sublicense, commercial_use, patent_use]             
             # 仅列出许可证明确授予的权利（这里的权利是指不在分发状态下的权利。例如某许可证规定若修改则不允许分发，则rights中有modify而没有redistribute）仅使用上述值。注意：
             #   - "merge" 指将原作品与其他材料组合成集合，只要未修改原内容, 若许可证有授予类似含义的权利就可以添加(GPL-3.0允许merge)
+            #   - "patent_use"（专利使用权）指的是被许可人使用该专利技术的权利
+            #   - "sublicense" 是指被许可人（Licensee）拥有将自己获得的权利，以自己的名义再次授权给第三方（Sublicensee）的法律权力。只有当许可证文本中明确出现 "sublicense"、"sub-license" 或 "right to grant sublicenses" 等词汇时，才能将此项归入 rights
+            #   - 对于宽松许可（如 Apache, MIT, BSD），如果文本授予了广义的 reproduce 和 distribute 权利，且未禁止组合，则应默认包含 merge
             #   - 只能包含上述已列出内容，不得新加词汇                        
-            #   - 重点："sublicense" 仅当许可证明文写出时才包含，不得臆测，若没有明文写出一律不得授予此权利
-            #   - 再分发（redistribute）” 和 “再许可（sublicense）不同            
+            #   - 再分发（redistribute）” 和 “再许可（sublicense）不同, redistribute 是指把原作品（及原协议）“传”给别人, sublicense 是指被许可人有权针对原作品“签发”一份新的许可协议           
             #   - 针对CC许可证：如果许可证没有ND（例如CC-BY-NC-SA等），必须添加redistribute在rights中
             #   - 针对CC许可证：如果许可证要求ND（例如CC-BY-ND等），不得添加redistribute在rights中           
             #   - 针对CC许可证：都要有merge, modify在在rights中
@@ -273,35 +278,41 @@ class LLMLicenseHelper:
             #   - 不得包含未授权的行为(right和reserved_rights无交集,在right中出现的权利不得在reserved_rights中出现，反之亦然), 例如NC许可证禁止商业行为，即不得包含commercial_use
             #   - 在分析许可证时，请特别注意 patent_use 权利的状态, patent_use（专利使用权）指的是被许可人使用该专利技术的权利
             #   - 对于数据/内容类许可证（如 CC-BY、CC0、PDDL 等），不得包含 patent_use 在 rights 中
-            #   - 对于模型/软件类许可证（如 Apache-2.0、MIT、OpenRAIL、OPT-175B 等），必须显式包含 patent_use 在 rights 中            
+
 
             reserved_rights: [trademark_use, copyright, patent, trademark, sublicense, commercial_use, patent_use, redistribute]
             # 仅列出许可证明确保留的法律权利，仅使用上述值。重要规则：
             #   - patent（专利权本身）指的是对某项发明所拥有的完整的专利所有权
             #   - patent_use（专利使用权）指的是被许可人使用该专利技术的权利
             #   - trademark（商标权本身）
-            #   - trademark_use（商标使用权）指是否允许被许可人使用该商标
-            #   - 只能包含上述列出内容，不得包含任何行为动 词（如 modify, copy, share, sell）
+            #   - trademark_use（商标使用权）指是否允许被许可人使用该商标。如果许可证明示不授予商标使用权在reserved_rights列出trademark_use
+            #   - 不能包含预定义列表内容之外的词汇。特别注意，严禁擅自添加如 modify, copy, share 等未在预定义列表中的行为
             #   - 例如许可证说 “you may not use for commercial purposes”，则 reserved_rights 必须包含 "commercial_use"
             #   - 若许可证说 “no right to sublicense”，则 reserved_rights 必须包含 "sublicense"
-            #   - 所有 CC 默认保留：trademark, patent, sublicense（除非明示授予）
+            #   - 即使许可证授予了使用权，只要它没有把底层的所有权彻底放弃，就必须在 reserved_rights 中包含 copyright, patent 和 trademark。授予使用权不等于转让所有权 
+            #   - 所有CC许可证除了CC0，默认保留：trademark, patent, sublicense（除非明示授予）
             #   - 针对CC许可证：如果许可证要求ND，有redistribute在reserved_rights
             #   - 对于数据/内容类许可证（如 CC-BY、CC0、PDDL 等），必须包含 patent_use 在 reserved_rights 中
+            #   - 对于software和model许可，只有当许可明确不授予patent_use（专利使用权）时，在reserved_rights有patent_use
             #   - right 和 reserved_rights 应无交集（disjoint），例如：
             #   - 针对CC许可证：如果许可证要求NC，则 rights 不得包含 commercial_use，reserved_rights 必须包含 commercial_use
-            #   - 若许可证说类似 "no sublicensing"，则 rights 不得包含 sublicense，reserved_rights 必须包含 sublicense
+            #   - "sublicense" 是指被许可人（Licensee）拥有将自己获得的权利，以自己的名义再次授权给第三方（Sublicensee）的法律权力。只有当许可证文本中明确不允许才能将此项归入reserved_rights
 
 
              rights_prefix: [perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable, non-transferable, non-sublicensable, revocable, sublicensable, any-person]
-            # 描述所授予权利的性质前缀，仅使用上述值。
+            # 描述所授予权利的性质前缀，仅使用上述值。此部分严格遵循许可证原文，未明确提及的不要臆测。 
             # - perpetual: 指授权一旦授予，在满足许可证条款的前提下永久有效，不会因时间到期而自动终止, 除非有明文写出（irrevocable不等同于perpetual），否则不得添加
             # - non-transferable: 被授权方不能将所获权利转授给第三方
-            # - 注意区分：no-charge：排除任何形式的初始许可费，royalty-free：排除基于使用量、收入、分发数量等的后续分成或计费。
+            # - 注意区分：no-charge：排除任何形式的初始许可费，例如 free of charge；royalty-free：排除基于使用量、收入、分发数量等的后续分成或计费。两者不互斥，具体情况遵循许可证原文。
 
             coverage: [duplicate, derivative, modification, translation]
             # 表示哪些类型的作品可以被合法再分发：
-            #   - "duplicate"：原样复制（除非许可证明确禁止复制或限制复制对象）
+            #   - "duplicate"：原样复制（除非许可证明确禁止复制或限制复制对象否则必须有）
             #   - "derivative/modification/translation"：仅当许可证允许分发修改版时才可能包含
+            #   - "derivative"：表示新作品与原作品在法律上无法分离，新作品受原许可证的条款约束。例如新作品是原作品的衍生作品，即基于原作品进行了融合、改编等，且需遵守原许可证的条款。
+            #   - "modification"：针对data许可（例如CC系列许可证），只有data许可中可能出现，强调对原作品进行了内容层面的改动，同样触发衍生作品义务
+            #   - "translation"：针对data许可（例如CC系列许可证），只有data许可中可能出现，特指对原作品进行语言或格式上的转换（如文本翻译、代码转写）
+            #   - 公共领域奉献类的许可证，“不保留任何权利”的许可（例如 WTFPL-2.0，CC0-1.0，PDDL），因为所有结果都被同等对待，即没有任何限制，coverage列表置空
             #   - ND 类许可证（如 CC-BY-ND）只能包含 duplicate
 
             redistribute: [include_notice, include_license, state_changes, include_use_restriction, include_runtime_restriction]
@@ -312,7 +323,8 @@ class LLMLicenseHelper:
             #   - "include_use_restriction" 仅适用于明确附带使用限制的许可证
 
             compat: []
-            # 仅当许可证**官方明确声明**与某许可证兼容时填写（如 CC-BY-SA 4.0 → GPL-3.0）
+            # 仅当许可证**官方明确声明**与某许可证兼容时填写（如 CC-BY-SA 4.0 兼容 GPL-3.0）
+            # 特别的，CC系列许可（除CC0）时，除官方明确声明的兼容许可，还需要列出CC系列内部的兼容许可（例如 CC-BY-NC 兼容 CC-BY-NC-SA)
 
             incompat: []
             # 仅当许可证**官方明确声明**不兼容某些许可证时填写
@@ -321,8 +333,8 @@ class LLMLicenseHelper:
             【最终校验清单】
             在输出前，请逐项确认：
             1. reserved_rights 中不含 modify/copy/share/sell 等行为动词。
-            2. rights 中的 "sublicense" 仅在许可证明文授权时出现（CC 4.0、GPL、LGPL 均不包含）。
-            3. rights = 被明确授予的使用权，reserved_rights = 明确未授予或禁止的权利，二者应无交集（disjoint）。在right中出现的权利不得在reserved_rights中出现，反之亦然
+            2. rights 中的 "sublicense" 仅在许可证明文授权时出现（GPL、LGPL 均不包含）。
+            3. rights = 被明确授予的使用权，reserved_rights = 明确未授予或禁止的权利，二者应无交集（disjoint）。这里的无交集仅指**完全相同的词汇字符串**不得同时出现在两边（例如 commercial_use 不能同时在两边出现），无需过度引申。
             4. 若 coverage 不包含 derivative/modification，则 redistribute 不得包含 state_changes。
             5. 所有 Creative Commons 许可证：
                - categories 必须包含 [public, data, (permissive|copyleft), auto-relicensing]
@@ -363,14 +375,14 @@ class LLMLicenseHelper:
             {license_text}
             许可证元数据:
             {license_data_no_terms}
-            # 任务：作为许可证分析专家，你需要在许可证元数据的基础上生成terms条目
+            # 任务：作为许可证分析专家，你需要在许可证元数据的基础上生成terms条目，对于输入的许可证元数据，请完全原样保留，绝对不要在这一步修改它的内容，只在末尾增加terms结构。
             请严格依据以下规则分析给定的许可证文本
             请仅输出符合 YAML 格式的增加了terms的许可证元数据，不要包含任何解释、注释、编号列表或中文说明。不要使用 Markdown 代码块（如 ```yaml）。若仅提供许可证名称而无文本，请基于权威知识（如 SPDX、OSI、Creative Commons 官方定义）填写；若有文本，则所有字段必须基于文本内容。
             输出内容必须是完整的，包括**许可证元数据**和**terms**
 
             ## 分析核心原则：
             1.  **首要原则**：所有分析的最终依据必须是许可证文本本身。任何结论都应有文本措辞作为支撑或合理推断的起点。
-            2.  **桥梁原则**：当许可证文本对AI相关活动（如训练、生成、微调、蒸馏、组合等）的法律性质**定义模糊或未定义**时，应使用下述分类法作为推断框架，将AI活动映射到许可证已有定义的相近概念上，以确定其`result`（结果形式）和可能触发的条款，将许可证对已有概念的规定应用在其对应的AI活动上。
+            2.  **桥梁原则**：当许可证文本提及了AI相关活动（如训练、生成、微调、蒸馏等）（前提是提及AI相关活动），但是其**法律结果规定模糊**时，应使用下述分类法作为推断框架，将AI活动映射到许可证已有定义的相近概念上，以确定其`result`（结果形式）和可能触发的条款，将许可证对已有概念的规定应用在其对应的AI活动上。
 
             ## AI活动ModelGo分类法与许可证语言映射规则
             请依据以下分类处理`terms`字段中的`usages`：
@@ -386,22 +398,25 @@ class LLMLicenseHelper:
             - **Generation (数据衍生)**：
             - **AI活动示例**：Inference、Synthetic。
             - **可映射的许可证关键词**：`output`, `result`,
-            - **如果许可证文本未提及任何AI活动以及可以映射的近似概念，那么相关AI活动`result`设置为`NODEF`          
+            - **如果许可证文本未提及的AI活动, 或者提及了但是法律后果模糊且没有可以映射的近似概念，那么相关AI活动`result`设置为`NODEF`          
 
 
             # terms 编写详细规则：
             - usages: []
-                #合法值如下
+                #每一个活动都要列出, 一个活动可以单独列出为一组。如果活动具有相同 result, forms, relicense, restrictions 和 copyleft 属性，可以分在一组，合并为一组时 keywords 合并在一个列表中。
+                #注意，这里的活动中所有许可证涉及的活动其result不得为NODEF，涉及的活动不仅包括需要讨论许可允许的活动，也包括许可明确不允许或有规定限制的活动。
+                #如果涉及到AI活动，需要从文本中进行合理的理解，例如不允许利用输出改进模型，是典型的关于distill的限制；如果此许可是为model设计的许可，那么当许可提及创建衍生作品那么显然与train有关（微调等行为）
+                #合法值如下（只可以出现以下活动，每一个活动都要列出）
                 #copy  
-                #use
+                #use  
                 #modify
                 #train
-                #combine #将多部作品(同种类型作品的组合，例如数据和数据的组合）组合起来构建一部新作品，但不包括递归混合作品。
-                #combine_mix #将多个作品组合以构建一个新作品，由此产生的作品是一种混合类型的组合（可能包括data, model, software多种类型作品进行组合）。
+                #combine #必须列出，将多部作品(同种类型作品的组合，例如数据和数据的组合, 没有对原作品进行修改, 只是组合）组合起来构建一部新作品，但不包括递归混合作品。
+                #combine_mix #将多个作品组合以构建一个新作品，由此产生的作品是一种混合类型的组合（可能包括data, model, software多种类型作品进行组合, 没有对原作品进行修改，只是组合）。
                 #amalgamate #将多个作品进行融合，生成无法再分离的新作品
                 #augment
                 #distill # Distill knowledge from old models to new models
-                #generate 
+                #generate #如果许可证提及"output"（或类似含义）那么表示许可证涉及活动generate,例如GPL-3.0许可就涉及generate
                 #embed # Embed works (corpus, image or other data samples) using aux_works (model or algorithm)
                 #stat 
 
@@ -417,15 +432,17 @@ class LLMLicenseHelper:
                 # GPL-3.0许可证combine活动的forms是binary那么result是independent，如果combine活动的forms是raw那么result是derivative
                 # 除以上情况基于以下逻辑选择一个：
                 # 1. 如果许可证文本明确定义此activity的结果 → 使用文本定义
-                #   -duplicate：仅限完全未改变原作品的行为
-                #   -independent: 表示新作品与原作品在法律上是独立的，即使它们被组合在一起（例如通过链接、聚合等方式），也不构成对原作品的修改或衍生。新作品不受原许可证的传染性条款约束
-                #   -derivative：表示新作品是原作品的衍生作品，即基于原作品进行了融合、改编等，新作品与原作品无法分离。需遵守原许可证的衍生作品条款，例如 GPL 要求整个衍生作品也必须以 GPL 发布（copyleft 效应）
-                #   -modification：强调对原作品进行了内容层面的改动，比 derivative 更具体地指向“修改”行为本身，同样触发衍生作品义务
+                #   -duplicate：仅限完全未改变原作品的行为。除了**公共领域奉献类许可证（例如WTFPL、CC0、PDDL）**外，其余许可证的 use/copy 结果均为 duplicate
+                #   -independent: 表示新作品与原作品在法律上是独立的，新作品不受原许可证的条款约束
+                #   -derivative：表示新作品与原作品在法律上无法分离，新作品受原许可证的条款约束。例如新作品是原作品的衍生作品，即基于原作品进行了融合、改编等，且需遵守原许可证的条款。
+                #   -modification：针对data许可（例如CC系列许可证），只有data许可中可能出现，强调对原作品进行了内容层面的改动，同样触发衍生作品义务
                 #   -translation：特指对原作品进行语言或格式上的转换（如文本翻译、代码转写）
-                #   -NODEF：处理许可证未覆盖的行为
-                # 2. 否则，应用ModelGo分类法, 将AI活动映射到许可证已有定义的相近概念上，以确定其`result`（结果形式）和可能触发的条款
-                #    - 例如Generation (数据衍生) → 
-                #        * 如果许可证将"output"纳入管辖那么generated的result不能为NODEF
+                #   -NODEF：处理许可证未覆盖的行为，指许可证没有涉及的活动。注意：如果许可证对某个活动提出了任何限制（如禁止改进其他模型、必须遵守 AUP），则该活动的 result 绝不能设为 NODEF。
+                # 2. 否则，若许可证提及某个AI活动但是没有明确其结果，应用ModelGo分类法, 将许可证提及的AI活动映射到许可证已有定义的相近概念上，以确定其`result`（结果形式）和可能触发的条款, 具体如下：
+                #    完全未提及：如果许可证文本完全没有提及某项 AI 活动（如 train），即使文本中有 modify 等概念，也不得自行映射，该未提及活动的 result 必须直接设为 NODEF。
+                #    提及但结果明确：如果文本提及了该活动并明确了结果，直接提取。
+                #    提及但结果模糊（触发 ModelGo）：如果文本提及了某项 AI 活动（如 train、微调），但对其产生的法律结果规定模糊，请使用 ModelGo 分类法。在许可证中寻找与该 AI 行为性质最接近的已有概念（例如将 train 映射到 amalgamate/modify 的条款），以此借用其逻辑来推断 train 的 result 和限制条件。
+                #    重要输出指示：不要弄丢原词，即使你通过映射借用了其他活动（如 modify）的逻辑来推导 train 的结果，在输出时，也必须明确保留 train 作为独立的 usage。你可以将推导结果相同的活动（例如 [train, amalgamate, modify]）组合在同一个 - usages: 列表中，但必须在 keywords 中提取包含文本原意的词汇（例如 keywords: [modify, adaptation, train, fine-tune]），绝不能因为映射逻辑就吞掉 train 相关的原词。
                 # 3. 如果无法通过以上方式确定 → NODEF 
 
 
@@ -434,6 +451,7 @@ class LLMLicenseHelper:
                 # 这里的restrictions 是针对特定 usage-result 组合的要求
                 # 合法值（可多选，但不得出现未列举的值）：include_notice, include_license, state_changes, include_use_restriction, include_runtime_restriction
                 # OpenRAIL类许可证（例如BigScience-BLOOM-RAIL-1.0，CreativeML-OpenRAIL-M等）terms中的restrictions必须至少有include_use_restriction和include_runtime_restriction            
+                # 当result为 NODEF 时不需要列出此条
 
             keywords: []
                 # 从许可证文本中提取与此activity相关的关键词。keywords 必须直接来源于许可证文本中的原词或其词形变化，不得引入文本中不存在的概念
@@ -442,26 +460,32 @@ class LLMLicenseHelper:
                 # - generate → [output, result, generation]
                 # - combine → [portion, collection, aggregate]
                 # - train → [train, fine-tune, improve] 
-
+                # 当result为 NODEF 时不需要列出此条
             relicense: false
-                # 定义：针对该 usage 产生的结果（Result），用户是否拥有“再许可权”（即：将结果更换为不同于原作品的许可证进行发布）。
+                # 定义：针对该 usage和forms组合 产生的结果（Result），用户是否拥有“再许可权”（即：将结果更换为不同于原作品的许可证进行发布）。
                 # 请根据以下逻辑三选一：
                 # - true: （允许更换 / 独立作品）
                 #     1. 结果被视为“独立作品” (Independent)，不受原协议约束。
-                #     2. 原协议是宽松协议 (Permissive, 如 MIT/Apache)，允许将衍生作品闭源或更换为私有协议（只要保留版权声明）。
+                #     2. 原协议允许将此种使用方法下产生的作品闭源或更换协议（只要保留版权声明）。特别注意允许将衍生作品闭源或更换为私有协议，不等于有权力更改原作品本身的许可证。
                 # - false: （禁止更换 / 强制继承）
-                #     1. 强 Copyleft 协议的衍生作品：必须严格沿用原协议（传染性）。
-                #     2. 专有协议 (Proprietary) 或禁止分发的协议：不允许更改协议条款，也不允许转为开源。
+                #     1. 是强 Copyleft 协议的衍生作品：必须严格沿用原协议（传染性）。
+                #     2. 禁止分发的协议，或此种使用方法下产生的作品不允许更改协议条款，也不允许转为开源。
                 # - conditional: （有条件更换）
-                #     允许更换协议，但必须满足特定约束条件：
-                #     1. 必须包含特定限制条款 (Use Restrictions)：如 Llama2/OpenRAIL，允许你用自己的协议发布微调模型，但必须保留“禁止用于暴力/非法用途”的条款。
+                #     允许更换协议，但必须满足特定约束条件 （这里的条件是指存在需要下游遵守的限制性条款，常规的include_notice, include_license, state_changes之类的不属于限制性条款）：
+                #     1. 必须包含特定限制条款 (Use Restrictions)：如 Llama2/OpenRAIL，允许你用自己的协议发布微调模型，但必须保留“禁止用于暴力/非法用途”的条款；Llama2不允许利用输出优化非Llama系列模型（反蒸馏）的条款
                 #     2. 必须在兼容列表内选择：只能转换为兼容的协议。
-                # GPL-3.0许可证combine中如果combine活动的forms是raw那么relicense是conditional
+                # 对于GPL 系列许可（GPL，AGPL，LGPL等）：
+                #     1. 若 usage 为 modify（涉及单一作品的改动），通常应设为 false，因为必须严格继承；
+                #     2. 若 usage 为 amalgamate（涉及多作品的融合），应根据元数据的 compat 字段判断。若存在兼容协议，应设为 conditional，否则为false
+                #     3. 若 usage 为 combine（涉及多作品的组合），必须区分 raw 和 binary：
+                #           针对 binary 组合（如果许可提及saas，分析逻辑和binary类似）： 优先查找许可证中关于‘聚合（Aggregate）’或‘单纯存放（Mere Accumulation）’的条款。若满足此类定义，其结果通常应判定为 independent，且 relicense 为 true。
+                #           针对 raw 组合： 优先查找关于‘链接（Linking）’或‘编译（Compilation）’的条款。在此类许可下，这通常导致 derivative 结果，且 relicense 判定为 false 或 conditional（如果有兼容许可为conditional，否则为false）
                 # OpenRAIL类许可证（例如BigScience-BLOOM-RAIL-1.0）的usages除了result是duplicate时除外，其余情况relicense必须为conditional, 因为其必须保留的“禁止用于暴力/非法用途”等条款
                 # CC类（除CC0）许可证的usages是amalgamate时，relicense必须为conditional
                 # 当result为 NODEF 时不需要列出此条
 
             copyleft: false
+                # 这里的copyleft 指的是该项特定活动产生的结果是否会触发原许可证的传染性条款
                 # 布尔值：
                 # - true: 仅适用于具有"传染性"的许可证（如GPL、CC-BY-SA），要求衍生作品必须以相同许可证发布
                 # - false: 所有其他许可证
@@ -486,19 +510,22 @@ class LLMLicenseHelper:
                       result: duplicate
                       restrictions: []
                       relicense: false
+                      copyleft: false
                     - usages: [combine]
                       forms: [raw, binary]
                       result: independent
                       restrictions: []
                       keywords: [separable, link]
                       relicense: true
+                      copyleft: false
                     - usages: [amalgamate, modify]
                       forms: [raw, binary]
                       result: derivative
                       restrictions: [state_changes]
                       keywords: [modify, reproduction]
                       relicense: true
-                    - usages: [train, distill, generate, embed]
+                      copyleft: false
+                    - usages: [train, distill, generate, embed, combine_mix, augment, stat]
                       forms: [raw, binary]
                       result: NODEF
 
@@ -550,52 +577,75 @@ class LLMLicenseHelper:
 
             【合法枚举值字典】
             categories 允许的值:
-              - public
-              - software
-              - data
-              - model
-              - proprietary
-              - permissive
-              - copyleft
-              - disclose #要求披露源码或修改（如 GPL 要求提供源代码）
-              - auto-relicensing
+            - public #只要该许可证是向不特定公众公开发布的（即 Open Source 或 Shared Source），均添加此项          
+            - permissive #宽松许可（如 MIT、Apache-2.0），根据实际内容判断，不得通过许可证名称简单臆测            
+            - copyleft #copyleft许可（如 GPL、CC-BY-SA）。如果修改或基于某个作品创作衍生作品，并分发该衍生作品，必须使用相同或兼容的许可证来授权整个衍生作品。            
+            - disclose #意味着许可作品要提供源代码（如 GPL 要求提供源代码，AFL-3.0要求原始许可人提供源码）            
+            - auto-relicensing #具有自动再许可机制（例如允许在特定条件下将衍生作品按兼容许可证再许可）（如 CC-BY-SA、GPL)            
+            - software #此许可适用于software           
+            - data #此许可适用于data            
+            - model #此许可适用于model
+            - proprietary # "proprietary" 与 "permissive"（宽松）互斥，不能同时存在; "public" 和 "proprietary" 可以同时出现（例如公开发布文本/源码的专有许可证）   
+            # 这里的"适用于"是指此许可本身设计时考虑了software, data, model中的某种或多种，不用考虑现实是否有人用作它用，比如经常有人使用Apache-2.0做model许可，但其实它在设计时并没有考虑model          
+
 
             rights 允许的值: # 仅列出许可证明确授予的权利（这里的权利是指不在分发状态下的权利。例如某许可证规定若修改则不允许分发，则rights中有modify而没有redistribute）仅使用下述值。
               - use
               - modify
-              - merge     （"merge" 指将原作品与其他材料组合成集合，只要未修改原内容, 若许可证有授予类似含义的权利就可以添加(GPL-3.0允许merge)）
+              - merge     （"merge" 指将原作品与其他材料组合成集合，若许可证有授予类似含义的权利（合理推断）就可以添加，例如LLama2和GPL-3.0允许merge）
               - redistribute
-              - sublicense
+              - sublicense   
               - commercial_use
               - patent_use
               - copyright  （注意：只有许可证声明放弃版权，如 Unlicense、CC0许可证时rights才可能有copyright）
+              # 对于数据/内容类许可证（如 CC-BY、CC0、PDDL 等），不得包含 patent_use 在 rights 中
+              # "patent_use"（专利使用权）指的是被许可人使用该专利技术的权利
+              # "sublicense" 是指被许可人（Licensee）拥有将自己获得的权利，以自己的名义再次授权给第三方（Sublicensee）的法律权力。只有当许可证文本中明确出现 "sublicense"、"sub-license" 或 "right to grant sublicenses" 等词汇时，才能将此项归入 rights
+              # 再分发（redistribute）” 和 “再许可（sublicense）不同, redistribute 是指把原作品（及原协议）“传”给别人, sublicense 是指被许可人有权针对原作品“签发”一份新的许可协议
+
 
             reserved_rights 允许的值:
-              - trademark_use
+              - trademark_use #（商标使用权）指是否允许被许可人使用该商标。如果许可证不授予商标使用权在reserved_rights列出trademark_use
               - copyright
-              - patent
-              - trademark  (注意：trademark 和 trademark_use 均合法，请勿误判！)
-              - sublicense
+              - patent  # patent（专利权本身）指的是对某项发明所拥有的完整的专利所有权
+              - trademark  #（商标权本身）
+              - sublicense #"sublicense" 是指被许可人（Licensee）拥有将自己获得的权利，以自己的名义再次授权给第三方（Sublicensee）的法律权力。只有当许可证文本中明确不允许才能将此项归入reserved_rights
               - commercial_use
-              - patent_use
+              - patent_use  #patent_use（专利使用权）指的是被许可人使用该专利技术的权利
               - redistribute
+              #注意：即使许可证授予了使用权，只要它没有把底层的所有权彻底放弃，就必须在 reserved_rights 中包含 copyright, patent 和 trademark。授予使用权不等于转让所有权 
+              #对于数据/内容类许可证（如 CC-BY、CC0、PDDL 等），必须包含 patent_use 在 reserved_rights 中
+              #对于software和model许可，只有当许可明示不授予patent_use（专利使用权）时，在reserved_rights有patent_use，如果没有确定说明则没有  
 
             coverage 允许的值: #表示哪些类型的作品可以被合法再分发
               - duplicate
               - derivative
-              - modification
-              - translation
-
-            redistribute 允许的值: #再分发时必须满足的要求
+              - modification #针对data许可（例如CC系列许可证），只有data许可中可能出现，强调对原作品进行了内容层面的改动，同样触发衍生作品义务
+              - translation #针对data许可（例如CC系列许可证），只有data许可中可能出现，特指对原作品进行语言或格式上的转换（如文本翻译、代码转写）
+              #公共领域奉献类的许可证，“不保留任何权利”的许可（例如 WTFPL-2.0，CC0-1.0，PDDL），因为所有结果都被同等对待，即没有任何限制，coverage列表置空
+            redistribute 允许的值: #再分发时必须满足的要求。检查此项是否有多余和遗漏
               - include_notice
               - include_license
               - state_changes
               - include_use_restriction
               - include_runtime_restriction
 
+            rights_prefix 允许的值: # 描述所授予权利的性质前缀，仅使用上述值。此部分严格遵循许可证原文，未明确提及的不要臆测。
+              - perpetual  #指授权一旦授予，在满足许可证条款的前提下永久有效，不会因时间到期而自动终止, 除非有明文写出（irrevocable不等同于perpetual），否则不得添加
+              - worldwide
+              - non-exclusive
+              - no-charge #排除任何形式的初始许可费
+              - royalty-free
+              - irrevocable
+              - non-transferable  #被授权方不能将所获权利转授给第三方
+              - non-sublicensable
+              - revocable
+              - sublicensable
+              - any-person  #文本中直接出现类似 "Permission is hereby granted...to **any person**..."（如 MIT）
+
             【校验规则】
             1. 枚举必须合法。
-            2. 互斥性：rights 与 reserved_rights 必须完全无交集。
+            2. 互斥性：rights 与 reserved_rights 必须完全无交集。rights = 被明确授予的使用权，reserved_rights = 明确未授予或禁止的权利，二者应无交集（disjoint）。这里的无交集仅指**完全相同的词汇字符串**不得同时出现在两边（例如 commercial_use 不能同时在两边出现），无需过度引申。
             3. 根据许可证内容检查每一项的值是否存在遗漏
             4. 联动：若 coverage 无 derivative/modification，则 redistribute 禁含 state_changes。
             3. CC规则：reserved_rights 必含 sublicense；rights 禁含 sublicense。ND许可证rights中有modify，merge没有redistribute，不得修改后分发，不等于不可修改。
@@ -607,7 +657,7 @@ class LLMLicenseHelper:
               - rights 集合: [此处再次默写 rights]
               - reserved_rights 集合:[此处再次默写 reserved_rights]
               - 真实交集元素: [如有交集写出元素，如无写“无”]
-              步骤3：结合文本分析语义是否进行了臆测, 是否有遗漏，是否有错误(注意：谨慎改动，如果待复核的基础元数据中的内容是合理的推测，不应判其错误）
+              步骤3：结合文本分析语义是否进行了臆测, 是否有遗漏，是否有错误。注意：对于 rights 和 usages 等涉及法理推断的字段，保持宽容，只要原文有相关暗示即算合理推测；但对于【合法枚举值字典】的拼写和互斥性，必须零容忍。
               【针对易错点的特殊防御规则】（审查时必须绝对遵守，不得违背）：
                 1. 商业使用一票否决权：只要许可证明确允许商业使用（无论是否有规模限制、行业限制、或者收费要求），`rights` 中必须包含 `commercial_use`，绝对不允许因为存在限制条款就判定 `commercial_use` 为错误。
                 2. 再许可的严格定义：在检查此条时必须先在许可证原文中尝试搜寻sublicense，允许用户修改代码并以新协议发布衍生品，绝不等于拥有 `sublicense`（再许可）权！只要协议中明确出现了 "non-transferable"（不可转让）或没有出现明文的 "sublicense"，`sublicense` 权利就未被授予
@@ -617,6 +667,8 @@ class LLMLicenseHelper:
                 6. 严格遵守：CC系列中的ND许可证(包括CC-BY-NC-ND，CC-BY-ND等ND许可证）rights中有modify和merge，没有redistribute，不得修改后分发，不等于不可修改。
                 7. 一个许可证不可能既是"proprietary"（专有）又是 "permissive"（宽松）的
                 8. 根据许可证语义判断rights中是否应该有merge
+                9. 检查rights_prefix是否存在遗漏, GPL许可要额外注意Patents章节
+
             # 重要格式警告：
             # 1. 所有的 description 和 suggestion 字段的值，必须使用双引号 "" 完全包裹！
             # 2. 在自然语言描述中，绝对禁止使用英文冒号（:），请统一使用中文冒号（：）。
@@ -687,95 +739,121 @@ class LLMLicenseHelper:
             terms_yaml = yaml.dump({"terms": terms}, allow_unicode=True, sort_keys=False)
 
             prompt = f"""
-            你是一位专业的许可证分析与建模专家，精通开源软件、开放数据、AI 模型及内容许可证。
-            下面给出：
-            1）某许可证的原文，
-            2）已经通过基础审计的元数据（不含 terms），
-            3）在该元数据基础上生成的 terms / ModelGo 映射。
-            请你只针对 terms 部分，从规则符合性与许可证原文的间接语义一致性两个角度进行审计。
+           你是一位专业的许可证分析与建模专家，精通开源软件、开放数据、AI 模型及内容许可证。
+           下面给出：
+           1）某许可证的原文，
+           2）已经通过基础审计的元数据（不含 terms），
+           3）在该元数据基础上生成的 terms / ModelGo 映射。
+           请你只针对 terms 部分，从规则符合性与许可证原文的间接语义一致性两个角度进行审计。
 
-            许可证名称:
-            {license_name}
+           许可证名称:
+           {license_name}
 
-            许可证原文:
-            {license_text}
+           许可证原文:
+           {license_text}
 
-            基础元数据 YAML（已通过基础审计，不含 terms）:
-            {metadata_yaml}
+           基础元数据 YAML（已通过基础审计，不含 terms）:
+           {metadata_yaml}
 
-            待审计的 terms YAML:
-            {terms_yaml}
+           待审计的 terms YAML:
+           {terms_yaml}
 
-            一、规则维度（terms 建模规则）：
-            1. usages 只能使用以下活动名：
-               [use, copy, modify, augment, train, combine, combine_mix, amalgamate, distill, generate, embed, stat]
-                #这里combine指将多部作品(同种类型作品的组合，例如数据和数据的组合）组合起来构建一部新作品，但不包括递归混合作品。
-                #这里combine_mix指将多个作品组合以构建一个新作品，由此产生的作品是一种混合类型的组合（可能包括data, model, software多种类型作品进行组合）。
-            2. forms 只能为 [raw, binary, saas] 中的一个或多个。
-            3. result 只能为 [duplicate, independent, derivative, modification, translation, NODEF]。
-               - CC许可证中（除CC0）embed 活动的 result 通常为 translation。
-               - duplicate：仅限完全未改变原作品的行为
-               - independent: 表示新作品与原作品在法律上是独立的。即使它们被组合在一起（例如通过链接、聚合等方式），也不构成对原作品的修改或衍生。新作品不受原许可证的传染性条款约束
-               - derivative：表示新作品是原作品的衍生作品，即基于原作品进行了融合、改编等，新作品与原作品无法分离。需遵守原许可证的衍生作品条款，例如 GPL 要求整个衍生作品也必须以 GPL 发布（copyleft 效应）
-               - modification：强调对原作品进行了内容层面的改动，比 derivative 更具体地指向“修改”行为本身，同样触发衍生作品义务
-               - translation：特指对原作品进行语言或格式上的转换（如文本翻译、代码转写）
-               - NODEF：处理许可证未覆盖的行为，只有许可确实没有覆盖的行为可以为NODEF, 对于许可证覆盖的行为应该有除NODEF外的result            
-            4. restrictions 只能为 [include_notice, include_license, state_changes, include_use_restriction, include_runtime_restriction]。# 这里的restrictions 是针对特定 usage-result 组合的要求
-            5. relicense 只能为 [true, false, conditional]。# 定义：针对该 usage 产生的结果（Result），用户是否拥有“再许可权”（即：将结果更换为不同于原作品的许可证进行发布）。
-               - OpenRAIL 类许可证的 usages 中，除 result 为 duplicate 的情况外，其余情况 relicense 通常应为 conditional。
-               - CC类许可证（除CC0）中 usages 为 amalgamate 时，relicense 通常应为 conditional。
-               - 当result为 NODEF 时不需要列出此条relicense
-            6. copyleft 只能为布尔值 true/false。但是当result为 NODEF 时不需要列出此条copyleft
+           一、规则维度（terms 建模规则）：
+           1. usages 只能使用以下活动名：
+              [use, copy, modify, augment, train, combine, combine_mix, amalgamate, distill, generate, embed, stat]
+               #forms,result,restrictions,relicense,copylef都相同的usage合并写在一起是合理的，但是除上述枚举活动不得擅自增加不存在的活动
+               #每个usages和forms的组合只能出现一次
+               #注意，这里的活动中所有许可证涉及的活动其result不得为NODEF，涉及的活动不仅包括需要讨论许可允许的活动，也包括许可明确不允许或有规定限制的活动。
+               #所有许可证涉及的活动（包括允许的，不允许的，有限制的活动，也就是所有许可有所提及的活动）必须列举，许可未涉及的活动可以列举（未涉及活动的result为NODEF）
+               #如果涉及到AI活动，可从文本中进行合理的理解，例如不允许利用输出改进某种模型，是典型的关于distill的限制；
+               #针对model许可，如果此许可是为model设计的许可（注意前提是model许可），那么当许可提及创建衍生作品那么显然与train有关（微调等行为）
+               #这里combine指将多部作品(同种类型作品的组合，例如数据和数据的组合，没有对原作品进行修改）组合起来构建一部新作品，但不包括递归混合作品。
+               #这里combine_mix指将多个作品组合以构建一个新作品，由此产生的作品是一种混合类型的组合（可能包括data, model, software多种类型作品进行组合，没有对原作品进行修改）。
+               #amalgamate指将多个作品进行融合，生成无法再分离的新作品
+               #MIT的combine的result是independent
+           2. forms 只能为 [raw, binary, saas] 中的一个或多个。
+           3. result 只能为 [duplicate, independent, derivative, modification, translation, NODEF]。
+              - CC许可证中（除CC0）embed 活动的 result 通常为 translation。
+              - duplicate：仅限完全未改变原作品的行为。除了公共领域奉献类许可证（例如WTFPL、CC0、PDDL）外，其余许可证的 use/copy 结果均为 duplicate
+              - independent: 表示新作品与原作品在法律上是独立的，新作品不受原许可证的条款约束
+              - derivative：表示新作品与原作品在法律上无法分离，新作品受原许可证的条款约束。例如新作品是原作品的衍生作品，即基于原作品进行了融合、改编等，且需遵守原许可证的条款。（重点是新作品受原许可证的条款约束，不特指衍生作品）
+              - modification：针对data许可（例如CC系列许可证），只有data许可中可能出现，强调对原作品进行了内容层面的改动，同样触发衍生作品义务
+              - translation：特指对原作品进行语言或格式上的转换（如文本翻译、代码转写）
+              - NODEF：处理许可证未覆盖的行为，指许可证完全没有涉及的活动。注意，这里的活动中所有许可证涉及的活动其result不得为NODEF，涉及的活动不仅包括需要讨论许可允许的活动，也包括许可明确不允许或有规定限制的活动。
+              #注意：如果原文中找不到任何支持某种 AI 行为或其映射行为的条款，terms 中对应的 usage 为 NODEF 是合规的，不应判错。           
+           4. restrictions 只能为 [include_notice, include_license, state_changes, include_use_restriction, include_runtime_restriction]。# 这里的restrictions 是针对特定 usage-result 组合分发时的要求 # 当result为 NODEF 时不需要列出此条
+           5. relicense 只能为 [true, false, conditional]。
+              # 定义：针对该 usage和forms组合 产生的结果（Result），用户是否拥有“再许可权”（即：将结果更换为不同于原作品的许可证进行发布）。
+               # 根据以下逻辑三选一：
+               # - true: （允许更换 / 独立作品）
+               #     1. 结果被视为“独立作品” (Independent)，不受原协议约束。
+               #     2. 原协议允许将此种使用方法下产生的作品闭源或更换协议（只要保留版权声明）。特别注意允许将衍生作品闭源或更换为私有协议，不等于有权力更改原作品本身的许可证，例如MIT许可证再use和copy活动下relicense为flase
+               # - false: （禁止更换 / 强制继承）
+               #     1. 是强 Copyleft 协议，协议有要求此活动产生的作品必须严格沿用原协议（传染性）（就算使用兼容许可也不允许，必须沿用原许可的情况）。
+               #     2. 禁止分发的协议，或此种使用方法下产生的作品不允许更改协议条款，也不允许转为开源。
+               #     3. 如果result为duplicate，除了公共领域奉献类许可证（例如WTFPL、CC0、PDDL）外，relicense必须为false
+               # - conditional: （有条件更换）
+               #     允许更换协议，但必须满足特定约束条件 （这里的条件是指存在需要下游遵守的限制性条款，常规的include_notice, include_license, state_changes之类的不属于限制性条款）：
+               #     1. 必须包含特定限制条款 (Use Restrictions)：如 Llama2/OpenRAIL，允许你用自己的协议发布微调模型，但必须保留“禁止用于暴力/非法用途”的条款。Llama2不允许利用输出优化非Llama系列模型（反蒸馏）的条款
+               #     2. 必须在兼容列表内选择：只能转换为兼容的协议。
+               # 对于GPL 系列许可（GPL，AGPL，LGPL等）：
+               #     1. 若 usage 为 modify（涉及单一作品的改动），通常应设为 false，因为必须严格继承；
+               #     2. 若 usage 为 amalgamate（涉及多作品的融合），应根据元数据的 compat 字段判断。若存在兼容协议，应设为 conditional。
+               #     3. 若 usage 为 combine（涉及多作品的组合），必须区分 raw 和 binary：
+               #           针对 binary 组合（如果许可提及saas，分析逻辑和binary类似）： 优先查找许可证中关于‘聚合（Aggregate）’或‘单纯存放（Mere Accumulation）’的条款。若满足此类定义，其结果通常应判定为 independent，且 relicense 为 true。
+               #           针对 raw 组合： 优先查找关于‘链接（Linking）’或‘编译（Compilation）’的条款。在 Copyleft 许可下，这通常导致 derivative 结果，且 relicense 判定为 false 或 conditional（如果有兼容许可为conditional，否则为false）
+               # 同一个usage因为有不同的forms，其result和relicense不同是正常的，例如GPL-3.0许可证combine中如果combine活动的forms是raw那么relicense是conditional
+               # OpenRAIL类许可证（例如BigScience-BLOOM-RAIL-1.0）的usages除了result是duplicate时除外，其余情况relicense必须为conditional, 因为其必须保留的“禁止用于暴力/非法用途”等条款
+               # CC类（除CC0）许可证的usages是amalgamate时，relicense必须为conditional
+               # MIT许可（类似许可）允许sublicense，这不代表就可以更改原本作品（use和copy没有产生新作品，本质还是原作品）的许可再发布，应该结合许可原文具体考虑
+               # 当result为 NODEF 时不需要列出此条
+           6. copyleft 只能为布尔值 true/false。但是当result为 NODEF 时不需要列出此条copyleft
 
-            二、与许可证原文的间接语义关系：
-            1. 若许可证文本清晰规定了某类行为（例如衍生作品、输出、训练等）的法律后果，应优先按照文本定义检视 result/restrictions/relicense。
-            2. 若文本未涉及 AI 行为及其近似概念，按照以下**AI活动ModelGo分类法与许可证语言映射规则**将AI活动映射为对应许可证语言进行检查：
-            ## AI活动ModelGo分类法与许可证语言映射规则
-            `terms`字段中的`usages`分类：
-            - **Combination (强分离组合, 原作品在新作品中可识别)**：
-            - **AI活动示例**：模型集成（MoE）、Voting、Stacking
-            - **可映射的许可证关键词**：`aggregate`, `collection`, `portion`, `link`, `use`, `arrange`, `separable`, `interface`
-            - **Amalgamation (弱分离组合, 原作品难以分离)**：
-            - **AI活动示例**：微调 (`fine-tune`)、model averaging、修改 (`modify`)、mix up、embed
-            - **可映射的许可证关键词**：`modify`, `adapt`, `alter`, `remix`, `incorporate`, `revision`、`translate`
-            - **Distillation (概念衍生, 新作品源于原作品的概念或功能)**：
-            - **AI活动示例**：knowledge distillation、contrastive learning、S-T learning。
-            - **可映射的许可证关键词**：transfer、reproduce、reuse
-            - **Generation (数据衍生)**：
-            - **AI活动示例**：Inference、Synthetic。
-            - **可映射的许可证关键词**：`output`, `result`,
-            - **如果许可证文本未提及任何AI活动以及可以映射的近似概念，那么相关AI活动`result`设置为`NODEF`
-            3. 注意relicense (再许可权/更换协议权) 定义：
-               - true: 允许更换协议且无下游传染限制（适用于完全独立的衍生品，或 MIT/Apache 等宽松协议）。
-               - false: 禁止更换协议，必须严格沿用原协议（适用于强 Copyleft 协议，或明确禁止更改协议的专有协议）。
-               - conditional: 允许更换协议，但**必须满足原协议的特定强制约束条件**， 只能转换为兼容的协议。
+           二、与许可证原文的语义关系：
+           1. 若许可证文本清晰规定了某类行为（例如衍生作品、输出、训练等）的法律后果，应优先按照文本定义检视 result/restrictions/relicense。
+           2. 若涉及 AI 行为但是未对其法律后果进行明确规定，按照以下**AI活动ModelGo分类法与许可证语言映射规则**将AI活动映射为对应许可证语言进行检查：
+           ## AI活动ModelGo分类法与许可证语言映射规则
+           `terms`字段中的`usages`分类：
+           - **Combination (强分离组合, 原作品在新作品中可识别)**：
+           - **AI活动示例**：模型集成（MoE）、Voting、Stacking
+           - **可映射的许可证关键词**：`aggregate`, `collection`, `portion`, `link`, `use`, `arrange`, `separable`, `interface`
+           - **Amalgamation (弱分离组合, 原作品难以分离)**：
+           - **AI活动示例**：微调 (`fine-tune`)、model averaging、修改 (`modify`)、mix up、embed
+           - **可映射的许可证关键词**：`modify`, `adapt`, `alter`, `remix`, `incorporate`, `revision`、`translate`
+           - **Distillation (概念衍生, 新作品源于原作品的概念或功能)**：
+           - **AI活动示例**：knowledge distillation、contrastive learning、S-T learning。
+           - **可映射的许可证关键词**：transfer、reproduce、reuse
+           - **Generation (数据衍生)**：
+           - **AI活动示例**：Inference、Synthetic。
+           - **可映射的许可证关键词**：`output`, `result`,
+           - **如果许可证文本未提及此AI活动，那么相关AI活动`result`可设置为`NODEF`
 
-            你的任务：
-            1. 检查 terms 是否违反上述建模规则。
-            2. 检查 terms 是否在语义上明显偏离许可证文本（例如擅自推断许可/禁止某些 AI 行为）。
-            3. 对每个问题给出分类和修改建议：
+           你的任务：
+           1. 检查 terms 是否违反上述建模规则。
+           2. 检查 terms 是否在语义上明显偏离许可证文本。
+           3. 对每个问题给出分类和修改建议（给出建议时不得擅自建议添加规则内没有提及的词汇，也不应该建议改动建模规则，给出的建议要在规则之内）：
 
-            输出要求（必须严格遵守）：
-            - 只输出一段 YAML，不要包含任何解释性自然语言，不要使用 Markdown 代码块（如 ```yaml）。
-            # 格式警告：所有 description 和 suggestion 必须用双引号 "" 包裹！绝对禁止在自然语言中使用英文冒号（:），请统一使用中文冒号（：）！
-            - 输出 YAML 结构必须如下（可以根据需要在 issues 中增加多条记录）：
-              chain_of_thought: |
-              你必须按以下步骤：
-              - 步骤1：建模规则检查
-              - 步骤2：检查语义上是否明显偏离许可证文本
-              ok: true/false  #本阶段是否通过
-              usable_for_compliance: true/false  #terms 是否可用于合规性分析
-              rule_conformant: true/false #是否符合 terms 建模规则
-              semantic_conformant: true/false #是否与许可证原文含义一致
-              issues:
-                - type: rule | semantic | mapping
-                  field: 字段路径（例如 "terms[0].usages", "terms[1].result"）
-                  severity: critical | warning
-                  escalate_to_metadata: true/false
-                  description: "用双引号包裹的中文问题描述"
-                  suggestion: "用双引号包裹的中文修改建议"
-              summary: "中文整体总结"
-            """
+           输出要求（必须严格遵守）：
+           - 只输出一段 YAML，不要包含任何解释性自然语言，不要使用 Markdown 代码块（如 ```yaml）。
+           # 格式警告：所有 description 和 suggestion 必须用双引号 "" 包裹！绝对禁止在自然语言中使用英文冒号（:），请统一使用中文冒号（：）！
+           - 输出 YAML 结构必须如下（可以根据需要在 issues 中增加多条记录）：
+             chain_of_thought: |
+             你必须按以下步骤：
+             - 步骤1：建模规则检查
+             - 步骤2：检查语义上是否明显偏离许可证文本
+             ok: true/false  #本阶段是否通过
+             usable_for_compliance: true/false  #terms 是否可用于合规性分析
+             rule_conformant: true/false #是否符合 terms 建模规则
+             semantic_conformant: true/false #是否与许可证原文含义一致
+             issues:
+               - type: rule | semantic | mapping
+                 field: 字段路径（例如 "terms[0].usages", "terms[1].result"）
+                 severity: critical | warning
+                 escalate_to_metadata: true/false
+                 description: "用双引号包裹的中文问题描述"
+                 suggestion: "用双引号包裹的中文修改建议"
+             summary: "中文整体总结"
+           """
 
             messages = [
                 {"role": "system", "content": "你是一位严谨的许可证 terms / ModelGo 映射审计专家"},
