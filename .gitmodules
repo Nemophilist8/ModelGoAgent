@@ -1,0 +1,3 @@
+[submodule "vendor/license.atlas"]
+	path = vendor/license.atlas
+	url = https://github.com/morningD/license.atlas.git

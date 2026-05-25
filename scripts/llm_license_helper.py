@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Dict, Optional, List, Tuple
 
 from scripts.api_license_fetcher import fetch_license_from_api
+from scripts.license_atlas_client import fetch_from_atlas
 
 # 两阶段审计自动修复的最大重试次数
 MAX_METADATA_RETRY = 3
@@ -19,12 +20,12 @@ class LLMLicenseHelper:
     使用 LLM 对未知许可证进行结构化建模与审计的辅助类。
     """
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "deepseek-chat", api_base: Optional[str] = None,
+    def __init__(self, api_key: Optional[str] = None, model: str = "deepseek-v4-flash", api_base: Optional[str] = None,
                  github_token: Optional[str] = None):
         # 支持的模型类型 (DeepSeek, 通义千问, OpenRouter)
         self.supported_models = {
             "deepseek": {
-                "model": "deepseek-chat",
+                "model": "deepseek-v4-flash",
                 "api_base": "https://api.deepseek.com/v1",
             },
             "qianwen": {
@@ -166,9 +167,52 @@ class LLMLicenseHelper:
 
     # --------- 许可证文本获取 ---------
 
+    def _read_license_text_from_raw(self, license_name: str) -> Optional[str]:
+        """从 scripts/license_raw/ 读取许可全文（精确匹配优先，其次子串匹配）。"""
+        try:
+            base_dir = os.path.join(os.path.dirname(__file__), "license_raw")
+            if not os.path.exists(base_dir):
+                return None
+
+            license_files = [f for f in os.listdir(base_dir) if f.endswith(".txt")]
+            processed_target = re.sub(r"[^a-zA-Z0-9]", "", license_name.lower())
+            license_path = None
+
+            for filename in license_files:
+                name = os.path.splitext(filename)[0]
+                processed = re.sub(r"[^a-zA-Z0-9]", "", name.lower())
+                if processed == processed_target:
+                    license_path = os.path.join(base_dir, filename)
+                    break
+
+            if not license_path:
+                for filename in license_files:
+                    name = os.path.splitext(filename)[0]
+                    processed = re.sub(r"[^a-zA-Z0-9]", "", name.lower())
+                    if processed_target in processed or processed in processed_target:
+                        license_path = os.path.join(base_dir, filename)
+                        break
+
+            if license_path and os.path.exists(license_path):
+                with open(license_path, "r", encoding="utf-8") as f:
+                    return f.read().strip()
+        except Exception as e:
+            logging.debug("Failed to read %s from local license_raw: %s", license_name, e)
+        return None
+
     def fetch_license_text(self, license_name: str) -> Optional[str]:
         if license_name in self.license_cache:
             return self.license_cache[license_name]
+
+        text = self._read_license_text_from_raw(license_name)
+        if text:
+            self.license_cache[license_name] = text
+            return text
+
+        text = fetch_from_atlas(license_name)
+        if text:
+            self.license_cache[license_name] = text
+            return text
 
         urls = [
             f"https://raw.githubusercontent.com/spdx/license-list-data/main/text/{license_name}.txt",
@@ -184,37 +228,6 @@ class LLMLicenseHelper:
                     return text
             except Exception as e:
                 logging.debug("Failed to fetch %s from %s: %s", license_name, url, e)
-
-        # 本地 license_raw 目录（可选）
-        try:
-            base_dir = os.path.join(os.path.dirname(__file__), "license_raw")
-            if os.path.exists(base_dir):
-                license_files = [f for f in os.listdir(base_dir) if f.endswith(".txt")]
-                processed_target = re.sub(r"[^a-zA-Z0-9]", "", license_name.lower())
-                license_path = None
-
-                for filename in license_files:
-                    name = os.path.splitext(filename)[0]
-                    processed = re.sub(r"[^a-zA-Z0-9]", "", name.lower())
-                    if processed == processed_target:
-                        license_path = os.path.join(base_dir, filename)
-                        break
-
-                if not license_path:
-                    for filename in license_files:
-                        name = os.path.splitext(filename)[0]
-                        processed = re.sub(r"[^a-zA-Z0-9]", "", name.lower())
-                        if processed_target in processed or processed in processed_target:
-                            license_path = os.path.join(base_dir, filename)
-                            break
-
-                if license_path and os.path.exists(license_path):
-                    with open(license_path, "r", encoding="utf-8") as f:
-                        text = f.read().strip()
-                        self.license_cache[license_name] = text
-                        return text
-        except Exception as e:
-            logging.debug("Failed to read %s from local license_raw: %s", license_name, e)
 
         logging.warning("Could not fetch license text for %s", license_name)
         return None
@@ -347,7 +360,7 @@ class LLMLicenseHelper:
                 {"role": "system", "content": "你是一位专门分析软件和数据许可证的专家。"},
                 {"role": "user", "content": prompt},
             ]
-            llm_response = self.call_llm(messages=messages, temperature=0.3, max_tokens=2000)
+            llm_response = self.call_llm(messages=messages, temperature=0.3, max_tokens=20000)
             if not llm_response:
                 return None
             self.save_llm_output(license_name, llm_response, "license_analysis_data")
@@ -540,7 +553,7 @@ class LLMLicenseHelper:
                 {"role": "system", "content": "你是一位专门分析软件和数据许可证的专家。"},
                 {"role": "user", "content": prompt},
             ]
-            llm_response = self.call_llm(messages=messages, temperature=0.3, max_tokens=2000)
+            llm_response = self.call_llm(messages=messages, temperature=0.3, max_tokens=20000)
             if not llm_response:
                 return None
             self.save_llm_output(license_name, llm_response, "license_analysis_terms")
@@ -694,7 +707,7 @@ class LLMLicenseHelper:
             llm_response = self.call_llm(
                 messages=messages,
                 temperature=0.1,
-                max_tokens=2500
+                max_tokens=25000
             )
             if not llm_response:
                 return None
@@ -863,7 +876,7 @@ class LLMLicenseHelper:
             llm_response = self.call_llm(
                 messages=messages,
                 temperature=0.1,
-                max_tokens=2500,
+                max_tokens=25000,
             )
             if not llm_response:
                 return None
@@ -1359,7 +1372,7 @@ def set_api_key(api_key: str, model: str = "deepseek", github_token: Optional[st
 
     supported_models = {
         "deepseek": {
-            "model": "deepseek-chat",
+            "model": "deepseek-v4-flash",
             "api_base": "https://api.deepseek.com/v1",
         },
         "qianwen": {

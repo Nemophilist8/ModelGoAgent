@@ -25,4 +25,9 @@ def release_policy_node(state: GraphState, config: RunnableConfig, *, store: Bas
             open_type=open_type
         )
     except Exception as e:
-        logger.error(e)
+        logger.error("release_policy 解析失败，使用默认值 sell/raw: %s", e)
+        return {
+            "messages": [{"role": "assistant", "content": "new work的发布方式为sell，发布形式为raw（默认值）"}],
+            "open_policy": "sell",
+            "open_type": "raw",
+        }

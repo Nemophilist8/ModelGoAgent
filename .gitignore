@@ -11,3 +11,4 @@ scripts/tmp_run.py
 .vscode/settings.json
 .claude/settings.local.json
 /agent/llm_outputs/
+/scripts/license_atlas/bodies/

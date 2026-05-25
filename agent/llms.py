@@ -20,7 +20,7 @@ MODEL_CONFIGS = {
         "embedding_model": "text-embedding-3-small"
     },
     "oneapi": {
-        "base_url": os.getenv("ONEAPI_BASE_URL", ""),
+        "base_url": os.getenv("ONEAPI_BASE_URL", "http://139.224.72.218:3000/v1"),
         "api_key": os.getenv("ONEAPI_API_KEY", ""),
         "chat_model": "qwen-max",
         "embedding_model": "text-embedding-v1"

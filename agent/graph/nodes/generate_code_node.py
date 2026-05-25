@@ -10,6 +10,7 @@ from langgraph.store.base import BaseStore
 from agent.models import GraphState
 from agent.utils import build_stage_prompt
 from .helpers import extract_multiple_functions, extract_python_code
+from .state_helpers import get_known_works, get_reuse_method, get_open_policy, get_open_type
 
 
 def generate_code(state: GraphState, config: RunnableConfig, *, store: BaseStore, llm=None, prompt_template_work=None):
@@ -18,14 +19,19 @@ def generate_code(state: GraphState, config: RunnableConfig, *, store: BaseStore
     - original_analysis：规则引擎输出的详细分析文本
     - structure_input：最终 Work 结构的简要表示
     """
-    known_works = state["known_works"]
+    known_works = get_known_works(state)
     raw_info = state["raw_info"]
-    reuse_method = state["reuse_method"]
-    open_policy = state["open_policy"]
-    open_type = state["open_type"]
+    reuse_method = get_reuse_method(state)
+    open_policy = get_open_policy(state)
+    open_type = get_open_type(state)
+
+    if not known_works:
+        raise RuntimeError("code_node: known_works 为空，无法生成分析代码")
+    if not reuse_method:
+        raise RuntimeError("code_node: reuse_method 为空，无法生成分析代码")
 
     logger.info(f"复用方法解析结果: {reuse_method}")
-    reuse_method_name = [i["method"] for i in reuse_method]
+    reuse_method_name = [i["method"] for i in reuse_method if isinstance(i, dict) and i.get("method")]
 
     # 让 LLM 根据复用方法 JSON 生成可执行的 Python 代码片段
     user_prompt = prompt_template_work.template.format(
