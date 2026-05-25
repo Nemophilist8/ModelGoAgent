@@ -1,9 +1,67 @@
+## 新克隆仓库必做
+
+从 Git 拉取代码后，请按顺序执行（在项目根目录 `ModelGoAgent/` 下）：
+
+```bash
+# 1. 拉取子模块（LicenseAtlas 数据源，未 --recursive 克隆时必做）
+git submodule update --init vendor/license.atlas
+
+# 2. 安装 Python 依赖（见下方「项目依赖」）
+pip install -r requirements.txt
+# 或按下方列表逐项 pip install
+
+# 3. 配置环境变量（复制并填写 API Key 等）
+# cp .env.example .env
+
+# 4. 生成本地许可全文缓存（bodies/ 不在仓库内，每台机器都要跑）
+make sync-atlas
+# 等价: python scripts/sync_license_atlas.py
+
+# 5. 可选：确认 LicenseAtlas 已就绪
+make check-atlas
+```
+
+**说明：**
+
+| 步骤 | 原因 |
+|------|------|
+| `git submodule update --init` | `vendor/license.atlas` 为子模块，普通 `git clone` 不会带出其中文件 |
+| `make sync-atlas` | 从子模块生成 `scripts/license_atlas/bodies/*.txt`（约 955 个文件）；许可建模在 `license_raw` 之后会读此处 |
+| `index.json` | 已随仓库提交，无需单独下载 |
+| `bodies/` | **不提交**；未执行 sync 时，未知许可的全文回退到 SPDX 远程，AI/自定义许可命中率会下降 |
+
+推荐克隆时一次性带子模块：
+
+```bash
+git clone --recursive <仓库 URL>
+```
+
+若已克隆但未带子模块，在项目根目录执行 `git submodule update --init vendor/license.atlas` 即可。
+
+---
+
 ## 运行方式
-启动服务 `python agent/main.py `   
 
-运行测试 `python test/test_workflow.py`
+启动服务：
 
-debug https://smith.langchain.com/
+```bash
+python agent/main.py
+```
+
+运行测试：
+
+```bash
+python agent/test/test_workflow.py
+```
+
+调试追踪：https://smith.langchain.com/
+
+### LicenseAtlas（许可全文来源）
+
+[LicenseAtlas](https://github.com/morningD/license.atlas) 提供约 956 条许可全文；`fetch_license_text` 优先级为：`license_raw` → **LicenseAtlas** → SPDX/OSI/GNU。
+
+- 仓库内路径：`scripts/license_atlas/index.json`（已提交）、`scripts/license_atlas/bodies/`（本地生成，已 gitignore）
+- 更新 Atlas 数据：升级 `vendor/license.atlas` 子模块 commit 后重新 `make sync-atlas`
 
 ## 项目依赖
 

@@ -5,6 +5,8 @@ import ast
 import json
 import os
 import re
+from typing import Callable, Optional
+
 from agent.config import logger
 
 
@@ -178,20 +180,33 @@ def extract_python_code(text: str) -> str:
     return text.strip()
 
 
-def build_license_clauses_text(known_works, license_raw_dir=None) -> str:
-    """
-    为 known_works 中涉及的每个唯一许可证，读取 scripts/license_raw/ 下对应的原文文件，
-    拼接为格式化的许可证原文字符串，供注入分析提示词使用。
-    相同许可证的 work 合并展示，每份许可证原文只插入一次。
-    """
-    if license_raw_dir is None:
-        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-        license_raw_dir = os.path.join(base_dir, 'scripts', 'license_raw')
+def _default_fetch_license_text(license_name: str) -> Optional[str]:
+    """与 clone_license 相同的全文来源：cache → license_raw → LicenseAtlas → SPDX。"""
+    from scripts.llm_license_helper import llm_helper
 
-    # 按许可证名称聚合 work
+    return llm_helper.fetch_license_text(license_name)
+
+
+def build_license_clauses_text(
+    known_works,
+    license_raw_dir=None,
+    fetch_text: Optional[Callable[[str], Optional[str]]] = None,
+) -> str:
+    """
+    为 known_works 中涉及的每个唯一许可证获取全文，拼接后注入分析提示词。
+    全文经 fetch_text（默认 llm_helper.fetch_license_text）获取。
+    相同许可证的 work 合并展示，每份许可证原文只插入一次。
+
+    license_raw_dir 已废弃，保留参数仅为兼容旧调用。
+    """
+    if license_raw_dir is not None:
+        logger.debug("license_raw_dir is deprecated; use fetch_license_text pipeline instead")
+
+    fetch = fetch_text or _default_fetch_license_text
+
     license_to_works: dict[str, list[str]] = {}
     for work in (known_works or []):
-        lic = getattr(work, 'license', None)
+        lic = getattr(work, "license", None)
         if not lic:
             continue
         license_to_works.setdefault(lic, []).append(work.name)
@@ -199,15 +214,13 @@ def build_license_clauses_text(known_works, license_raw_dir=None) -> str:
     sections = []
     for lic, work_names in license_to_works.items():
         works_label = "、".join(work_names)
-        license_file = os.path.join(license_raw_dir, f"{lic}.txt")
-
-        if os.path.exists(license_file):
-            with open(license_file, 'r', encoding='utf-8') as f:
-                raw_text = f.read()
+        raw_text = fetch(lic)
+        if raw_text and raw_text.strip():
             sections.append(f"### {lic}\n\n适用作品：{works_label}\n\n{raw_text.strip()}")
         else:
-            logger.warning(f"许可证原文文件未找到: {lic}")
-            sections.append(f"### {lic}\n\n适用作品：{works_label}\n\n（原文件未找到，请查阅官方网站）")
+            logger.warning("许可证全文未找到: %s", lic)
+            sections.append(
+                f"### {lic}\n\n适用作品：{works_label}\n\n（原文件未找到，请查阅官方网站）"
+            )
 
-    # print(os.path.abspath(license_file))
     return "\n\n---\n\n".join(sections) if sections else "（未检测到任何已知许可证）"

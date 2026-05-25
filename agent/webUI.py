@@ -17,16 +17,44 @@ headers = {"Content-Type": "application/json"}
 
 # 默认流式输出 True or False
 stream_flag = False
+_conversation_id = None
+_pending_interrupt = False
+_pending_clarify_form = None
+
+
+def _format_clarify_form_hint(clarify_form: dict) -> str:
+    lines = ["\n\n---\n**请补充组件信息**（可复制以下 JSON 填写后作为一条消息发送）：\n"]
+    lines.append("```json")
+    lines.append(json.dumps({"kind": "clarify_form", "answers": [
+        {**{"canonical_name": c.get("canonical_name"), "mention": c.get("mention")},
+         **{f: "" for f in c.get("missing", [])}}
+        for c in clarify_form.get("components", [])
+    ]}, ensure_ascii=False, indent=2))
+    lines.append("```")
+    lines.append("将 `answers` 中各字段填好后整段发送；或使用 agent/test/test_workflow_interactive.py 逐项填写。")
+    return "\n".join(lines)
 
 
 def send_message(user_message, history):
-    # 封装请求的参数
+    global _conversation_id, _pending_interrupt, _pending_clarify_form
+    if _conversation_id is None:
+        import uuid
+        _conversation_id = str(uuid.uuid4())
     data = {
         "messages": [{"role": "user", "content": user_message}],
         "stream": stream_flag,
         "userId": "123",
-        "conversationId": "123"
+        "conversationId": _conversation_id,
     }
+    if _pending_interrupt:
+        text = (user_message or "").strip()
+        if text.startswith("{"):
+            try:
+                data["resume"] = json.loads(text)
+            except json.JSONDecodeError:
+                data["resume"] = user_message
+        else:
+            data["resume"] = user_message
 
     # 等待LLM产生token前的等待状态
     history = history + [["user", user_message], ["assistant", "正在生成回复..."]]
@@ -86,8 +114,17 @@ def send_message(user_message, history):
     else:
         response = requests.post(url, headers=headers, data=json.dumps(data))
         response_json = response.json()
+        finish = response_json.get("choices", [{}])[0].get("finish_reason")
+        if finish == "need_user_input":
+            _conversation_id = response_json.get("conversationId") or _conversation_id
+            _pending_interrupt = True
+            _pending_clarify_form = response_json.get("clarify_form")
+        else:
+            _pending_interrupt = False
+            _pending_clarify_form = None
         assistant_content = response_json['choices'][0]['message']['content']
-        # 格式化响应
+        if _pending_clarify_form:
+            assistant_content += _format_clarify_form_hint(_pending_clarify_form)
         formatted_content = format_response(assistant_content)
         logger.info(f"非流式输出，格式化后的内容是: {formatted_content}")
         updated_history = history[:-1] + [["assistant", formatted_content]]

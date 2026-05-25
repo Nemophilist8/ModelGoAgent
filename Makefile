@@ -1,3 +1,11 @@
+.PHONY: sync-atlas check-atlas
+
+sync-atlas:
+	git submodule update --init vendor/license.atlas
+	python scripts/sync_license_atlas.py
+
+check-atlas:
+	python scripts/sync_license_atlas.py --check-only
 
 .PHONY: e2b:build:dev
 e2b:build:dev:

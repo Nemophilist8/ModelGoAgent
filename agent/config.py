@@ -24,6 +24,8 @@ PROMPT_TEMPLATE_TXT_REUSE = './prompt/prompt_template_reuse.txt'
 PROMPT_TEMPLATE_TXT_CODE = "./prompt/prompt_template_code.txt"
 PROMPT_TEMPLATE_TXT_POLICY = "./prompt/prompt_template_open_policy&type.txt"
 PROMPT_TEMPLATE_TXT_REUSE_AMEND = "./prompt/prompt_template_reuse_amend.txt"
+PROMPT_TEMPLATE_TXT_WORK_EXTRACT = "./prompt/prompt_template_work_extract.txt"
+PROMPT_TEMPLATE_TXT_WORK_CLARIFY = "./prompt/prompt_template_work_clarify.txt"
 
 # 分隔符
 SEPARATOR = "---------------------------------------------------------------------------------------------"

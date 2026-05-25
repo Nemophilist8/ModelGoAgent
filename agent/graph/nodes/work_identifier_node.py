@@ -3,7 +3,7 @@ Work 识别节点
 """
 import json
 from agent.config import logger
-from agent.knowledge import registered_work
+from agent.knowledge import KNOWN_WORK_REGISTRY, registered_work
 from langchain_core.runnables import RunnableConfig
 from langgraph.store.base import BaseStore
 from agent.models import GraphState, Work
@@ -29,22 +29,19 @@ def work_identifier_node(state: GraphState, config: RunnableConfig, *, store: Ba
         for item in result:
             k = list(item.keys())[0]
             v = item[k]
-            if v in registered_work.keys():
-                identified_works_list.append(Work(k, v, registered_work[v]))
+            registry = KNOWN_WORK_REGISTRY
+            if v in registry.keys():
+                identified_works_list.append(Work(k, v, registry[v]))
             else:
                 unknown_works_list.append(Work(k, v))
 
         logger.info(f"识别出的已知 Work:{identified_works_list}")
         logger.info(f"未知对象列表: {unknown_works_list}")
 
-        if len(unknown_works_list) > 0:
-            error_msg = (
-                "检测到未识别的 Work，对话已中断。\n"
-                f"未知 Work: {unknown_works_list}\n"
-                "请先注册这些 Work 或修正输入后重试。"
-            )
-            logger.error(error_msg)
-            raise RuntimeError(error_msg)
+        # 已由 work_extract / work_finalize 处理动态 Work；此节点仅作兼容保留
+        for uw in unknown_works_list:
+            identified_works_list.append(uw)
+        unknown_works_list = []
 
         # 返回结果并添加到消息中
         result_message = f"已识别的 Work 对象:\n{[i.name for i in identified_works_list]}\n\n未知对象列表: {unknown_works_list}"

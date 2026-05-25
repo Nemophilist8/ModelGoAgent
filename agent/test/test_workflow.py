@@ -1,3 +1,7 @@
+"""
+单次 POST 冒烟测试（不支持 interrupt 多轮）。
+需要与用户交互续答时请使用: python agent/test/test_workflow_interactive.py
+"""
 import requests
 
 API_URL = "http://127.0.0.1:8012/v1/chat/completions"

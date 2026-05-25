@@ -179,7 +179,7 @@ class Parser(object):
             logging.warning(f"The license name of Work {work.name} is not specified")
             return None
         # 处理 Unknown 许可证，尝试通过 LLM / API 自动识别
-        if isinstance(work.license_name, str) and work.license_name.lower() == "unknow":
+        if isinstance(work.license_name, str) and work.license_name.lower() in ("unknow", "unknown"):
             try:
                 license_name, error = llm_helper.handle_unknown_license(work.name)
                 work.license_name = license_name

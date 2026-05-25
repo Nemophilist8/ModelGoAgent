@@ -65,3 +65,69 @@ def build_stage_prompt(system_text, user_text):
         {"role": "system", "content": system_text},
         {"role": "user", "content": user_text},
     ]
+
+
+def normalize_message_content(content) -> str:
+    """将 LangChain / OpenAI 多种 content 格式统一为字符串。"""
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for block in content:
+            if isinstance(block, dict):
+                if block.get("type") == "text":
+                    parts.append(str(block.get("text", "")))
+                elif "text" in block:
+                    parts.append(str(block["text"]))
+            elif isinstance(block, str):
+                parts.append(block)
+        return "".join(parts)
+    return str(content)
+
+
+def is_assistant_message(msg) -> bool:
+    """判断是否为助手侧消息（兼容 dict 与 LangChain AIMessage）。"""
+    if isinstance(msg, dict):
+        return msg.get("role") in ("assistant", "ai")
+    msg_type = getattr(msg, "type", None)
+    if msg_type in ("ai", "assistant"):
+        return True
+    return getattr(msg, "role", None) in ("assistant", "ai")
+
+
+def extract_message_content(msg) -> str:
+    if isinstance(msg, dict):
+        return normalize_message_content(msg.get("content"))
+    return normalize_message_content(getattr(msg, "content", None))
+
+
+def get_final_response_content(state: dict) -> str:
+    """
+    从 Graph 最终 state 提取应返回给用户的正文。
+    优先 analysis_report，其次 messages 中最长的助手消息，最后 pending_prompt。
+    """
+    if not isinstance(state, dict):
+        return ""
+
+    report = state.get("analysis_report")
+    if report and str(report).strip():
+        return str(report).strip()
+
+    messages = state.get("messages") or []
+    best = ""
+    for msg in messages:
+        if not is_assistant_message(msg):
+            continue
+        text = extract_message_content(msg).strip()
+        if len(text) > len(best):
+            best = text
+    if best:
+        return best
+
+    pending = state.get("pending_prompt")
+    if pending and str(pending).strip():
+        return str(pending).strip()
+
+    return ""

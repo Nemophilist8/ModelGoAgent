@@ -19,6 +19,8 @@
 
   * 必须进行修正、补充或删除
 * 若现有 reuse 关系完全正确且覆盖充分，则原样返回
+* 对 method=generate 的每条关系：inputs 必须表达「数据（或上一步 output）→ 模型」；inputs[0] 为数据侧，inputs[1] 为模型侧；禁止把二者都写成无法区分顺序的同级 inputs
+* 生成链中：上一步的 output 名称必须在下一步 generate 的 inputs[0] 中复用（名称一致）
 
 ### 输入
 

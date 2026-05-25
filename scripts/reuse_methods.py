@@ -148,7 +148,8 @@ def generate(works, aux_works=None, output_as:Work=None, license_name:str=None) 
         for aw in aux_works:
             new_work.auxworks += reuse_method_spread(aw, 'generate')
 
-    logging.debug(f"Generate {','.join([w.name for w in works])} with auxworks {','.join([aw.name for aw in aux_works])}")
+    aux_names = [aw.name for aw in (aux_works or [])]
+    logging.debug(f"Generate {','.join([w.name for w in works])} with auxworks {','.join(aux_names)}")
     return new_work
 
 # Embed works (corpus, image or other data samples) using aux_works (model or algorithm)
